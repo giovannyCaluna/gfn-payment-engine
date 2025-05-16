@@ -1,0 +1,30 @@
+{
+  "name": "gfn-payment-engine",
+  "version": "1.0.0",
+  "description": "Payment Engine for GeforceNow",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "npx tsx --watch  src/api-gateway/index.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/giovannyCaluna/gfn-payment-engine.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/giovannyCaluna/gfn-payment-engine/issues"
+  },
+  "homepage": "https://github.com/giovannyCaluna/gfn-payment-engine#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.1",
+    "@types/node": "^22.15.18"
+  }
+}
