@@ -1,5 +1,7 @@
-import MercadoPagoService from '@/modules/payments/mercado-pago/mercado-pago.service';
+import MercadoPagoService from '@/modules/platforms/mercado-pago/mercado-pago.service';
 import { PaymentDTO } from '@/modules/payments/payment.dto';
+import { CardTokenRequestDTO } from '../platforms/mercado-pago/DTOs/card-token-request.dto';
+import { CreatePaymentDTO } from '../platforms/mercado-pago/DTOs/create-payment.dto';
 // import WomService from './wo';
 // import StripeService from '../stripe/stripe.service';
 
@@ -54,6 +56,32 @@ class PaymentIntegrationService {
       //   return await this.womService.handlePaymentNotification(notificationData);
       // case 'stripe':
       //   return await this.stripeService.handlePaymentNotification(notificationData);
+      default:
+        throw new Error('Payment method not supported');
+    }
+  }
+
+  async generateCardToken(cardData: CardTokenRequestDTO, method: PaymentMethod): Promise<any> {
+    switch (method) {
+      case 'mercadopago':
+        return await this.mercadoPagoService.generateCardToken(cardData);
+      // case 'wom':
+      //   return await this.womService.generateCardToken(cardData);
+      // case 'stripe':
+      //   return await this.stripeService.generateCardToken(cardData);
+      default:
+        throw new Error('Payment method not supported');
+    }
+  }
+
+    async generatePayment(paymentData:CreatePaymentDTO, method: PaymentMethod): Promise<any> {
+    switch (method) {
+      case 'mercadopago':
+        return await this.mercadoPagoService.generatePayment(paymentData);
+      // case 'wom':
+      //   return await this.womService.generateCardToken(cardData);
+      // case 'stripe':
+      //   return await this.stripeService.generateCardToken(cardData);
       default:
         throw new Error('Payment method not supported');
     }

@@ -1,6 +1,8 @@
 import express, { Request, Response } from 'express';
-import MercadoPagoService from '@/modules/payments/mercado-pago/mercado-pago.service';
+import MercadoPagoService from '@/modules/platforms/mercado-pago/mercado-pago.service';
 import { PaymentDTO } from '@/modules/payments/payment.dto';
+import { CardTokenRequestDTO } from './DTOs/card-token-request.dto';
+import { CreatePaymentDTO } from './DTOs/create-payment.dto';
 
 const router = express.Router();
 const mercadoPagoService = new MercadoPagoService();
@@ -42,5 +44,26 @@ router.post('/notification', async (req: Request, res: Response) => {
     res.status(500).json({ message: error });
   }
 });
+
+// router.post('/card-token', async (req: Request, res: Response) => {
+//   try {
+//     const cardData: CardTokenRequestDTO = req.body;
+//     const token = await mercadoPagoService.generateCardToken(cardData);
+//     res.json({ token });
+//   } catch (error: any) {
+//     res.status(500).json({ error: error.message });
+//   }
+// });
+
+// router.post('/generate-payment', async (req: Request, res: Response) => {
+//   try {
+//     const paymentData: CreatePaymentDTO = req.body;
+//     const reponse = await mercadoPagoService.generatePayment(paymentData);
+//     res.json({ reponse });
+//   } catch (error: any) {
+//     res.status(500).json({ error: error.message });
+//   }
+// });
+
 
 export default router;
