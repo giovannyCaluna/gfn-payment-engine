@@ -24,7 +24,10 @@
     "express": "^5.1.0"
   },
   "devDependencies": {
+    "@types/axios": "^0.14.4",
+    "@types/cors": "^2.8.18",
     "@types/express": "^5.0.1",
-    "@types/node": "^22.15.18"
+    "@types/node": "^22.15.18",
+    "typescript": "^5.8.3"
   }
 }
