@@ -7,17 +7,10 @@ const router = express.Router();
 const paymentService = new PaymentService();
 
 // Ruta para crear un pago
-router.post('/create', async (req: Request, res: Response) => {
+router.post('/register', async (req: Request, res: Response) => {
   try {
-    const paymentData = new PaymentDTO(
-      req.body.title,
-      req.body.amount,
-      req.body.method,
-      req.body.successUrl,
-      req.body.failureUrl,
-      req.body.pendingUrl
-    );
-
+    const paymentData :PaymentDTO = req.body
+    console.log('Datos procesados para pago:', paymentData);
     const payment = await paymentService.createPayment(paymentData);
     res.json({ paymentUrl: payment.init_point });
   } catch (error: any) {
@@ -28,7 +21,7 @@ router.post('/create', async (req: Request, res: Response) => {
 // Ruta para consultar el estado de un pago
 router.get('/status/:paymentId', async (req: Request, res: Response) => {
   try {
-    const paymentStatusData = new PaymentStatusDTO(req.params.paymentId, req.body.method);
+    const paymentStatusData = req.body;
     const status = await paymentService.getPaymentStatus(paymentStatusData);
     res.json({ status });
   } catch (error: any) {

@@ -29,7 +29,7 @@ class PaymentIntegrationService {
       // case 'stripe':
       //   return await this.stripeService.createPayment(paymentData);
       default:
-        throw new Error('Payment method not supported');
+        throw new Error('Método de pago no soportado');
     }
   }
 
