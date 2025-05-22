@@ -5,7 +5,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import paymentRoutes from '@/modules/payments/payment.controller';
 import { executeQuery } from '@/utils/query';
-
+import paymentPlatformRoutes from '@/modules/platforms/paymentPlatform.controller';
 
 
 // Create a new express application instance
@@ -28,15 +28,19 @@ app.listen(port, () => {
 });
 
 
-// Inside your Express app
 
 
-app.get('/api/datos', async (req, res) => {
-  try {
-    const results = await executeQuery('SELECT * FROM user');
-    res.json(results);
-  } catch (err) {
-    res.status(500).send('Error al ejecutar la consulta');
-  }
-});
+// app.get('/api/datos', async (req, res) => {
+//   try {
+//     const results = await executeQuery('SELECT * FROM user');
+//     res.json(results);
+//   } catch (err) {
+//     res.status(500).send('Error al ejecutar la consulta');
+//   }
+// });
+
+
+
+
+app.use('/api/payment-platforms', paymentPlatformRoutes);
 
