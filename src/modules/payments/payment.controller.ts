@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import PaymentService from './payment.service';
 import { PaymentDTO, PaymentStatusDTO } from '@/modules/payments/payment.dto';
 import { CreatePaymentDTO } from '../platforms/mercado-pago/DTOs/create-payment.dto';
+import { CardsRequestDTO } from '../platforms/mercado-pago/DTOs/cardsRequest';
 
 const router = express.Router();
 const paymentService = new PaymentService();
@@ -63,14 +64,17 @@ router.post('/generate-payment', async (req: Request, res: Response) => {
 });
 
 
-router.get('/payment-platforms', (req: Request, res: Response) => {
+
+router.post('/get-cards', async (req: Request, res: Response) => {
   try {
-    const platforms = paymentService.getAllPlatforms();
-    res.json({ platforms });
+    const data:CardsRequestDTO = req.body;
+    const result = await paymentService.getCards(data);
+    res.json({ result });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
-});
+}
+);
 
 
 
