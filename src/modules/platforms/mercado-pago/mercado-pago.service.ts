@@ -2,6 +2,9 @@ import axios from 'axios';
 import { CardTokenRequestDTO } from "@/modules/platforms/mercado-pago/DTOs/card-token-request.dto";
 import { CreatePaymentDTO } from '@/modules/platforms/mercado-pago/DTOs/create-payment.dto';
 import { randomUUID } from 'crypto';
+import { CardsRequestDTO } from './DTOs/cardsRequest';
+import mercadopago, { MercadoPagoConfig, CustomerCard, Customer } from 'mercadopago';
+import { CustomerSearchData, CustomerSearchOptions } from 'mercadopago/dist/clients/customer/search/types';
 
 
 
@@ -106,9 +109,28 @@ class MercadoPagoService {
   async saveCard(data: any): Promise<any> {
     return null;
   }
-  async getCards(data: any): Promise<any> {
-    return null;
+
+  async getCards(data: CardsRequestDTO): Promise<any> {
+    const client = new MercadoPagoConfig({
+      accessToken: data.accessToken,
+    });
+    const customer = new Customer(client);
+    const filter: CustomerSearchData = {options: { email: data.email}};
+    let customerInfor: any[] = [];
+    try {
+      const response = await customer.search(filter);
+      customerInfor = response.results ?? [];
+    } catch (error: any) {
+      console.error("error", error);
+      return error;
+    }
+    if (customerInfor && customerInfor.length > 0) {
+      return customerInfor[0].cards;
+    }
+    return customerInfor;
   }
+
+
   async generatePaymentToken(data: any): Promise<any> {
     return null;
   }

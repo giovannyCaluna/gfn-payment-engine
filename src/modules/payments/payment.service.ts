@@ -2,6 +2,7 @@ import PaymentIntegrationService from './payment.integration';
 import { PaymentDTO, PaymentStatusDTO } from './payment.dto';
 import { CardTokenRequestDTO } from '../platforms/mercado-pago/DTOs/card-token-request.dto';
 import { CreatePaymentDTO } from '@/modules/platforms/mercado-pago/DTOs/create-payment.dto';
+import { CardsRequestDTO } from '../platforms/mercado-pago/DTOs/cardsRequest';
 type PaymentMethod = 'mercadopago' | 'wom' | 'stripe';
 class PaymentService {
 
@@ -36,8 +37,8 @@ class PaymentService {
     return await this.paymentIntegrationService.generatePayment(paymentData, method as PaymentMethod);
   }
 
-  getAllPlatforms(): string[] {
-    return ['mercadopago', 'wom', 'stripe'];
+async getCards(data:CardsRequestDTO): Promise<any> {
+    return await this.paymentIntegrationService.getCards(data);
   }
 
 
