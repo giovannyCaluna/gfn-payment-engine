@@ -9,7 +9,14 @@ import { getAllPlatforms } from '@/modules/platforms/paymentPlatform.service';
 
 const router = Router();
 
-router.get('/', getAllPlatforms);
+router.get('/', async (req: Request, res: Response) => {
+  try {
+    const result = await getAllPlatforms(req, res);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 router.post('/', async (req, res) => {
   const result = await PlatformService.addPlatform(req.body);

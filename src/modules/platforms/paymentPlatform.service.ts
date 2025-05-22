@@ -13,8 +13,12 @@ export const findPlatformsByCountry = PlatformModel.getPlatformsByCountry;
 
 export const getAllPlatforms = async (req: Request, res: Response) => {
   try {
-    const platforms = await prisma.paymentPlatform.findMany();
-    res.json(platforms);
+    const platforms = await prisma.payment_platforms.findMany();
+    const serializedPlatforms = platforms.map(platform => ({
+      ...platform,
+      id: platform.id.toString(),
+    }));
+    res.json(serializedPlatforms);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error fetching platforms' });
