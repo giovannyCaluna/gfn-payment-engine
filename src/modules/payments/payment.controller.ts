@@ -1,10 +1,13 @@
 import express, { Request, Response } from 'express';
 import PaymentService from './payment.service';
-import { PaymentDTO, PaymentStatusDTO } from '@/modules/payments/payment.dto';
+import { PaymentDTO, PaymentStatusDTO } from '@/modules/payments/DTOs/payment.dto';
 import { CreatePaymentDTO } from '../platforms/mercado-pago/DTOs/create-payment.dto';
 import { CardsRequestDTO } from '../platforms/mercado-pago/DTOs/cardsRequest';
 import { createSubscription, getAllSubscriptions } from '@/modules/subscriptions/subscrition.service';
 import { CreateSubscriptionDto } from './../subscriptions/DTO/create-subscription.dto';
+import { ExecutePaymentDto } from './DTOs/executePayment.dto';
+import executePayment from './payment.integration';
+import { TokenGenerationNoCVVDto } from '../platforms/mercado-pago/DTOs/token-generation-no-CVV.dto';
 
 const router = express.Router();
 const paymentService = new PaymentService();
@@ -78,6 +81,25 @@ router.post('/get-cards', async (req: Request, res: Response) => {
   }
 }
 );
+
+router.post('/execute-payment', async (req: Request, res: Response) => {
+  try {
+    const paymentData: ExecutePaymentDto = req.body;
+    //const subscription = await paymentService.executePayment(paymentData);
+    const tokenData:TokenGenerationNoCVVDto = req.body;
+    const token = await paymentService.executePayment(paymentData);
+    console.log("token", token);
+    res.json( token );
+  }
+  catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+}
+);
+
+
+
+
 
 
 

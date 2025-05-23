@@ -3,8 +3,9 @@ import { CardTokenRequestDTO } from "@/modules/platforms/mercado-pago/DTOs/card-
 import { CreatePaymentDTO } from '@/modules/platforms/mercado-pago/DTOs/create-payment.dto';
 import { randomUUID } from 'crypto';
 import { CardsRequestDTO } from './DTOs/cardsRequest';
-import mercadopago, { MercadoPagoConfig, CustomerCard, Customer } from 'mercadopago';
+import mercadopago, { MercadoPagoConfig, CustomerCard, Customer, Payment, CardToken } from 'mercadopago';
 import { CustomerSearchData, CustomerSearchOptions } from 'mercadopago/dist/clients/customer/search/types';
+import { TokenGenerationNoCVVDto } from './DTOs/token-generation-no-CVV.dto';
 
 
 
@@ -112,10 +113,10 @@ class MercadoPagoService {
 
   async getCards(data: CardsRequestDTO): Promise<any> {
     const client = new MercadoPagoConfig({
-      accessToken: data.accessToken,
+      accessToken: this.accessToken,
     });
     const customer = new Customer(client);
-    const filter: CustomerSearchData = {options: { email: data.email}};
+    const filter: CustomerSearchData = { options: { email: data.email } };
     let customerInfor: any[] = [];
     try {
       const response = await customer.search(filter);
@@ -137,6 +138,74 @@ class MercadoPagoService {
   async generateRecurrentPayment(data: any): Promise<any> {
     return null;
   }
+  async executePayment(data: any): Promise<any> {
+    const client = new MercadoPagoConfig({
+      accessToken: this.accessToken,
+    });
+
+    const token = await this.generateCardTokenNoCVV(data);
+    console.log("token", token.id);
+
+    const payment = new Payment(client);
+
+    const paymentData = {
+      transaction_amount: 150.00,
+      payment_method_id: 'visa',
+      payer: {
+        type: 'customer',
+        id: '2362240901-LkCLVlyiGixvC4', // must exist in your Mercado Pago account
+      },
+      token: token.id, // Replace with a valid test card token (see below)
+      binary_mode: true,
+      callback_url: 'https://your-app.com/return',
+      campaign_id: undefined, // Set if you have a campaign ID
+      capture: true,
+      date_of_expiration: '2025-05-30T23:59:59.000Z', // 7 days from May 23, 2025
+      description: 'GFN Premium Monthly Subscription',
+      differential_pricing_id: undefined, // Set if using differential pricing
+      external_reference: 'ORDER_20250523',
+      installments: 1,
+      metadata: { order_id: 'ORDER_20250523' },
+      notification_url: 'https://your-app.com/webhook',
+      statement_descriptor: 'GFN Subscription',
+      three_d_secure_mode: 'optional',
+      forward_data: {},
+      sponsor_id: undefined, // Set if using a sponsor
+      transaction_details: { financial_institution: undefined },
+    };
+
+
+
+    const paymentResponse = await payment.create({
+      body: paymentData,
+      requestOptions: { idempotencyKey: `PAY_${Date.now()}` }, // Unique idempotency key
+    });
+
+
+    console.log("response", paymentResponse);
+
+
+    return paymentResponse;
+
+  }
+
+
+  async generateCardTokenNoCVV(data: TokenGenerationNoCVVDto): Promise<any> {
+    const client = new MercadoPagoConfig({
+      accessToken: this.accessToken,
+    });
+    const cardToken = new CardToken(client);
+    const body = {
+      card_id: "1743519795673",
+      customer_id: "2362240901-LkCLVlyiGixvC4",
+      security_code: "123"
+    }
+
+    const reponse = await cardToken.create({ body: body });
+    return reponse;
+  }
+
+
 
 
 }

@@ -1,5 +1,5 @@
 import MercadoPagoService from '@/modules/platforms/mercado-pago/mercado-pago.service';
-import { PaymentDTO } from '@/modules/payments/payment.dto';
+import { PaymentDTO } from '@/modules/payments/DTOs/payment.dto';
 
 import { UserDTO } from './user.dto';
 // import WomService from './wo';

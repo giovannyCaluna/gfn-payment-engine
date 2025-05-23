@@ -1,5 +1,5 @@
 import MercadoPagoService from '@/modules/platforms/mercado-pago/mercado-pago.service';
-import { PaymentDTO } from '@/modules/payments/payment.dto';
+import { PaymentDTO } from '@/modules/payments/DTOs/payment.dto';
 import { CardTokenRequestDTO } from '../platforms/mercado-pago/DTOs/card-token-request.dto';
 import { CreatePaymentDTO } from '../platforms/mercado-pago/DTOs/create-payment.dto';
 import { CardsRequestDTO } from '../platforms/mercado-pago/DTOs/cardsRequest';
@@ -102,6 +102,20 @@ class PaymentIntegrationService {
         throw new Error('Payment method not supported');
     }
   }
+  async executePayment(data:any): Promise<any> {
+    switch (data.platformCode) {
+      case 'MERCADOPAGO':
+        return await this.mercadoPagoService.executePayment(data);
+      // case 'wom':
+      //   return await this.womService.getCards(userId);
+      // case 'stripe':
+
+      //   return await this.stripeService.getCards(userId);
+      default:
+        throw new Error('Payment method not supported');
+    }
+  }
+  
 
 
 
