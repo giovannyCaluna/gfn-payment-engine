@@ -4,6 +4,7 @@ import 'dotenv/config';
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import paymentRoutes from '@/modules/payments/payment.controller';
+import subscriptionRoutes from '@/modules/subscriptions/subscription.controller';
 import { executeQuery } from '@/utils/query';
 import paymentPlatformRoutes from '@/modules/platforms/paymentPlatform.controller';
 
@@ -13,7 +14,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use('/api/payments', paymentRoutes);
-
+app.use('/api/subscriptions', subscriptionRoutes);
 // Set the network port
 const port = process.env.PORT || 3000;
 

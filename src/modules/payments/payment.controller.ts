@@ -3,9 +3,12 @@ import PaymentService from './payment.service';
 import { PaymentDTO, PaymentStatusDTO } from '@/modules/payments/payment.dto';
 import { CreatePaymentDTO } from '../platforms/mercado-pago/DTOs/create-payment.dto';
 import { CardsRequestDTO } from '../platforms/mercado-pago/DTOs/cardsRequest';
+import { createSubscription, getAllSubscriptions } from '@/modules/subscriptions/subscrition.service';
+import { CreateSubscriptionDto } from './../subscriptions/DTO/create-subscription.dto';
 
 const router = express.Router();
 const paymentService = new PaymentService();
+
 
 // Ruta para crear un pago
 router.post('/register', async (req: Request, res: Response) => {
@@ -75,6 +78,9 @@ router.post('/get-cards', async (req: Request, res: Response) => {
   }
 }
 );
+
+
+
 
 
 

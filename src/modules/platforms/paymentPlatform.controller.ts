@@ -14,7 +14,6 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 router.get('/country/:code', async (req: any, res: any) => {
-  console.log('country', req.params.code);
   const platforms = await PlatformService.getPlatformById(req.params.code, res);
   res.json(platforms);
 });

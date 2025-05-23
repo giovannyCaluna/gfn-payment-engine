@@ -10,6 +10,7 @@ datasource db {
 model payment_platforms {
   id                BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
   name              String    @unique(map: "name") @db.VarChar(100)
+  code              String    @unique(map: "code") @db.VarChar(20)
   description       String?   @db.VarChar(255)
   website_url       String?   @db.VarChar(255)
   logo_url          String?   @db.VarChar(255)
@@ -23,4 +24,76 @@ model user {
   id    Int    @id @default(autoincrement())
   email String @db.VarChar(255)
   name  String @db.VarChar(255)
+}
+
+model payments {
+  id                  Int             @id @default(autoincrement()) @db.UnsignedInt
+  subscription_id     Int             @db.UnsignedInt
+  platform_id         Int             @db.UnsignedInt
+  external_payment_id String?         @db.VarChar(255)
+  amount              Decimal         @db.Decimal(10, 2)
+  currency            String          @db.VarChar(3)
+  status              payments_status @default(pending)
+  attempted_at        DateTime        @db.DateTime(0)
+  confirmed_at        DateTime?       @db.DateTime(0)
+  response_data       String?         @db.LongText
+  created_at          DateTime?       @default(now()) @db.Timestamp(0)
+  subscriptions       subscriptions   @relation(fields: [subscription_id], references: [id], onUpdate: Restrict, map: "payments_ibfk_1")
+
+  @@index([subscription_id], map: "subscription_id")
+}
+
+model plans {
+  id            Int             @id @default(autoincrement()) @db.UnsignedInt
+  name          String          @db.VarChar(100)
+  amount        Decimal         @db.Decimal(10, 2)
+  currency      String          @db.VarChar(3)
+  interval      plans_interval
+  description   String?         @db.Text
+  created_at    DateTime?       @default(now()) @db.Timestamp(0)
+  updated_at    DateTime?       @default(now()) @db.Timestamp(0)
+  subscriptions subscriptions[]
+}
+
+model subscriptions {
+  id                Int                    @id @default(autoincrement()) @db.UnsignedInt
+  user_id           Int                    @db.UnsignedInt
+  plan_id           Int                    @db.UnsignedInt
+  status            subscriptions_status   @default(active)
+  start_date        DateTime               @db.DateTime(0)
+  next_billing_date DateTime               @db.DateTime(0)
+  interval          subscriptions_interval
+  grace_period_days Int?                   @default(0)
+  last_payment_id   Int?                   @db.UnsignedInt
+  created_at        DateTime?              @default(now()) @db.Timestamp(0)
+  updated_at        DateTime?              @default(now()) @db.Timestamp(0)
+  payments          payments[]
+  plans             plans                  @relation(fields: [plan_id], references: [id], onUpdate: Restrict, map: "subscriptions_ibfk_1")
+
+  @@index([plan_id], map: "plan_id")
+}
+
+enum subscriptions_status {
+  active
+  paused
+  canceled
+  trial
+}
+
+enum plans_interval {
+  monthly
+  yearly
+  weekly
+}
+
+enum payments_status {
+  pending
+  paid
+  failed
+  refunded
+}
+
+enum subscriptions_interval {
+  monthly
+  yearly
 }
