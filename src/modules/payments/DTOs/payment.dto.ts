@@ -14,6 +14,8 @@ import {
   IsBoolean
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { Phone } from 'mercadopago/dist/clients/commonTypes';
+import { CustomerCardBody, CustomerCardCreateData } from 'mercadopago/dist/clients/customerCard/create/types';
 
 export class AutoRecurringDTO {
   @IsNumber({}, { message: 'La frecuencia debe ser un número' }) // Corrección aquí
@@ -138,7 +140,7 @@ export class UserInfoDTO {
   last_name: string;
 
   @IsEmail()
-  mail: string;
+  email: string;
 
   @IsString()
   @IsNotEmpty()
@@ -146,7 +148,7 @@ export class UserInfoDTO {
 
   @IsString()
   @IsNotEmpty()
-  phone: string;
+  phone: Phone;
 
   @IsString()
   @IsNotEmpty()
@@ -155,14 +157,14 @@ export class UserInfoDTO {
   constructor(
     name: string,
     last_name: string,
-    mail: string,
+    email: string,
     external_user_id: string,
-    phone: string,
+    phone: Phone,
     direccion: string
   ) {
     this.name = name;
     this.last_name = last_name;
-    this.mail = mail;
+    this.email = email;
     this.external_user_id = external_user_id;
     this.phone = phone;
     this.direccion = direccion
@@ -170,6 +172,10 @@ export class UserInfoDTO {
 }
 
 export class PaymentDTO {
+
+  @IsString()
+  accessToken: string;
+
   @IsString()
   @IsIn(['mercadopago', 'wom'])
   method: string;
@@ -179,19 +185,20 @@ export class PaymentDTO {
   userInfo: UserInfoDTO;
 
   @ValidateNested()
-  @Type(() => CardInfoDTO)
-  cardInfo: CardInfoDTO;
+  cardInfo: CustomerCardBody;
 
   @ValidateNested()
   @Type(() => ProductInfoDTO)
   productInfo: ProductInfoDTO;
 
   constructor(
+    accessToken:string,
     method: string,
     userInfo: UserInfoDTO,
-    cardInfo: CardInfoDTO,
+    cardInfo: CustomerCardBody,
     productInfo: ProductInfoDTO
   ) {
+    this.accessToken = accessToken;
     this.method = method;
     this.userInfo = userInfo;
     this.cardInfo = cardInfo;
