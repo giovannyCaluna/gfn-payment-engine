@@ -21,10 +21,10 @@ class PaymentIntegrationService {
   }
 
   // Crear un pago dependiendo del método de pago elegido
-  async createPayment(paymentData: PaymentDTO, method: PaymentMethod): Promise<any> {
+  async registerCardAndFirstPayment(paymentData: PaymentDTO, method: PaymentMethod): Promise<any> {
     switch (method) {
       case 'mercadopago':
-        return await this.mercadoPagoService.createPayment(paymentData);
+        return await this.mercadoPagoService.registerCardAndFirstPayment(paymentData);
       // case 'wom':
       //   return await this.womService.createPayment(paymentData);
       // case 'stripe':

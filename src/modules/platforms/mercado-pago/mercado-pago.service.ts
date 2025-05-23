@@ -5,6 +5,7 @@ import { randomUUID } from 'crypto';
 import { CardsRequestDTO } from './DTOs/cardsRequest';
 import mercadopago, { MercadoPagoConfig, CustomerCard, Customer } from 'mercadopago';
 import { CustomerSearchData, CustomerSearchOptions } from 'mercadopago/dist/clients/customer/search/types';
+import { PaymentDTO } from '@/modules/payments/payment.dto';
 
 
 
@@ -21,32 +22,45 @@ class MercadoPagoService {
   }
 
   // Crear un pago en Mercado Pago
-  async createPayment(paymentData: any): Promise<any> {
-    try {
-      const response = await axios.post(`${this.apiUrl}/checkout/preferences`, {
-        items: [
-          {
-            title: paymentData.title,
-            quantity: 1,
-            unit_price: paymentData.amount,
-          },
-        ],
-        back_urls: {
-          success: paymentData.successUrl,
-          failure: paymentData.failureUrl,
-          pending: paymentData.pendingUrl,
-        },
-        payer: {
-          name: paymentData.payerName,
-          email: paymentData.payerEmail,
-        },
-      }, {
-        headers: {
-          Authorization: `Bearer ${this.accessToken}`,
-        },
-      });
+  async registerCardAndFirstPayment(paymentData: PaymentDTO): Promise<any> {
+    const client = new MercadoPagoConfig({
+      accessToken: paymentData.accessToken,
+    });
+    const customer = new Customer(client);
+    const filter: CustomerSearchData = { options: { email: paymentData.userInfo.email } };
 
-      return response.data;
+    const customerCard = new CustomerCard(client);
+
+    try {
+
+      const response = await customer.search(filter);
+      let customerInfo = response.results?.[0];
+      if (!customerInfo) {
+        const createCustomerData = {
+          body: paymentData.userInfo
+        }
+        const newCustomer = await customer.create(createCustomerData);
+        customerInfo = newCustomer;
+        console.log('Cliente creado:', customerInfo.id);
+      } else {
+        console.log('ℹCliente ya existe:', customerInfo.id);
+      }
+
+      if (!customerInfo?.id) {
+        throw new Error("No se pudo obtener el ID del cliente");
+      }
+
+      if (!paymentData.cardInfo) {
+        throw new Error("Token de tarjeta no proporcionado");
+      }
+
+      // 3. Almacenar tarjeta asociada al customer_id
+      const cardResponse = await customerCard.create({
+        customerId: customerInfo.id,
+        body: paymentData.cardInfo// Token generado en el frontend
+      });
+      console.log("💳 Tarjeta almacenada:", cardResponse.id);
+      return response.results;
     } catch (error: any) {
       throw new Error('Error al crear el pago en Mercado Pago: ' + error.message);
     }
@@ -115,7 +129,7 @@ class MercadoPagoService {
       accessToken: data.accessToken,
     });
     const customer = new Customer(client);
-    const filter: CustomerSearchData = {options: { email: data.email}};
+    const filter: CustomerSearchData = { options: { email: data.email } };
     let customerInfor: any[] = [];
     try {
       const response = await customer.search(filter);

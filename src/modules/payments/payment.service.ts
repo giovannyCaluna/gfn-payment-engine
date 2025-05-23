@@ -13,9 +13,9 @@ class PaymentService {
   }
 
   // Crear un pago
-  async createPayment(paymentData: PaymentDTO): Promise<any> {
+  async registerCardAndFirstPayment(paymentData: PaymentDTO): Promise<any> {
     const { method } = paymentData;
-    return await this.paymentIntegrationService.createPayment(paymentData, method as PaymentMethod);
+    return await this.paymentIntegrationService.registerCardAndFirstPayment(paymentData, method as PaymentMethod);
   }
 
   // Consultar el estado de un pago
