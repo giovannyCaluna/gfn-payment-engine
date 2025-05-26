@@ -8,6 +8,7 @@ import { CreateSubscriptionDto } from './../subscriptions/DTO/create-subscriptio
 import { ExecutePaymentDto } from './DTOs/executePayment.dto';
 import executePayment from './payment.integration';
 import { TokenGenerationNoCVVDto } from '../platforms/mercado-pago/DTOs/token-generation-no-CVV.dto';
+import { PaymentAlreadyRegistered } from '@/modules/payments/DTOs/payment-registered-user.dto';
 
 const router = express.Router();
 const paymentService = new PaymentService();
@@ -84,9 +85,7 @@ router.post('/get-cards', async (req: Request, res: Response) => {
 
 router.post('/execute-payment', async (req: Request, res: Response) => {
   try {
-    const paymentData: ExecutePaymentDto = req.body;
-    //const subscription = await paymentService.executePayment(paymentData);
-    const tokenData:TokenGenerationNoCVVDto = req.body;
+    const paymentData: PaymentAlreadyRegistered = req.body;
     const token = await paymentService.executePayment(paymentData);
     console.log("token", token);
     res.json( token );

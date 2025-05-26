@@ -3,6 +3,8 @@ import { PaymentDTO } from '@/modules/payments/DTOs/payment.dto';
 import { CardTokenRequestDTO } from '../platforms/mercado-pago/DTOs/card-token-request.dto';
 import { CreatePaymentDTO } from '../platforms/mercado-pago/DTOs/create-payment.dto';
 import { CardsRequestDTO } from '../platforms/mercado-pago/DTOs/cardsRequest';
+import { PaymentAlreadyRegistered } from '@/modules/payments/DTOs/payment-registered-user.dto';
+
 // import WomService from './wo';
 // import StripeService from '../stripe/stripe.service';
 
@@ -91,7 +93,7 @@ class PaymentIntegrationService {
 
   async getCards(data:CardsRequestDTO): Promise<any> {
     switch (data.platformCode) {
-      case 'MERCADOPAGO':
+      case 'mercadopago':
         return await this.mercadoPagoService.getCards(data);
       // case 'wom':
       //   return await this.womService.getCards(userId);
@@ -102,9 +104,9 @@ class PaymentIntegrationService {
         throw new Error('Payment method not supported');
     }
   }
-  async executePayment(data:any): Promise<any> {
-    switch (data.platformCode) {
-      case 'MERCADOPAGO':
+  async executePayment(data:PaymentAlreadyRegistered): Promise<any> {
+    switch (data.method) {
+      case 'mercadopago':
         return await this.mercadoPagoService.executePayment(data);
       // case 'wom':
       //   return await this.womService.getCards(userId);
