@@ -8,69 +8,152 @@ datasource db {
 }
 
 model payment_platforms {
-  id                BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
-  name              String    @unique(map: "name") @db.VarChar(100)
-  code              String    @unique(map: "code") @db.VarChar(20)
-  description       String?   @db.VarChar(255)
-  website_url       String?   @db.VarChar(255)
-  logo_url          String?   @db.VarChar(255)
-  status            Boolean?  @default(true)
-  country_available String?   @db.VarChar(10)
-  created_at        DateTime? @default(now()) @db.Timestamp(0)
-  updated_at        DateTime? @db.Timestamp(0)
+  id                       Int                        @id @default(autoincrement())
+  name                     String                     @db.VarChar(100)
+  code                     String                     @db.VarChar(20)
+  description              String?                    @db.VarChar(255)
+  website_url              String?                    @db.VarChar(255)
+  logo_url                 String?                    @db.VarChar(255)
+  status                   Boolean?                   @default(true)
+  created_at               DateTime?                  @default(now()) @db.Timestamp(0)
+  updated_at               DateTime?                  @db.Timestamp(0)
+  app_platform_credentials app_platform_credentials[]
+
+  @@unique([code, name], map: "code")
 }
 
-model user {
-  id    Int    @id @default(autoincrement())
-  email String @db.VarChar(255)
-  name  String @db.VarChar(255)
+model app_platform_credentials {
+  id                Int               @id @default(autoincrement())
+  app_id            Int
+  platform_id       Int
+  country_code      String            @db.VarChar(10)
+  access_token      String            @db.Text
+  refresh_token     String?           @db.Text
+  client_id         String?           @db.VarChar(255)
+  client_secret     String?           @db.VarChar(255)
+  public_key        String?           @db.Text
+  private_key       String?           @db.Text
+  extra_info        String?           @db.Text
+  status            Boolean?          @default(true)
+  created_at        DateTime?         @default(now()) @db.Timestamp(0)
+  updated_at        DateTime?         @db.Timestamp(0)
+  registered_apps   registered_apps   @relation(fields: [app_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "app_platform_credentials_ibfk_1")
+  payment_platforms payment_platforms @relation(fields: [platform_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "app_platform_credentials_ibfk_2")
+
+  @@unique([app_id, platform_id, country_code], map: "app_id")
+  @@index([platform_id], map: "platform_id")
 }
 
+model registered_apps {
+  id                       Int                        @id @default(autoincrement())
+  name                     String                     @db.VarChar(100)
+  app_id                   String                     @unique(map: "app_id") @db.VarChar(100)
+  description              String?                    @db.Text
+  status                   Boolean?                   @default(true)
+  created_at               DateTime?                  @default(now()) @db.Timestamp(0)
+  updated_at               DateTime?                  @db.Timestamp(0)
+  app_platform_credentials app_platform_credentials[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model payments {
-  id                  Int             @id @default(autoincrement()) @db.UnsignedInt
-  subscription_id     Int             @db.UnsignedInt
-  platform_id         Int             @db.UnsignedInt
-  external_payment_id String?         @db.VarChar(255)
-  amount              Decimal         @db.Decimal(10, 2)
-  currency            String          @db.VarChar(3)
-  status              payments_status @default(pending)
-  attempted_at        DateTime        @db.DateTime(0)
-  confirmed_at        DateTime?       @db.DateTime(0)
-  response_data       String?         @db.LongText
-  created_at          DateTime?       @default(now()) @db.Timestamp(0)
-  subscriptions       subscriptions   @relation(fields: [subscription_id], references: [id], onUpdate: Restrict, map: "payments_ibfk_1")
+  id                                                    Int                     @id @default(autoincrement()) @db.UnsignedInt
+  subscription_id                                       Int                     @db.UnsignedInt
+  user_id                                               Int                     @db.UnsignedInt
+  platform_id                                           Int                     @db.UnsignedInt
+  external_payment_id                                   String?                 @db.VarChar(255)
+  amount                                                Decimal                 @db.Decimal(10, 2)
+  currency                                              String                  @db.VarChar(3)
+  status                                                payments_status         @default(pending)
+  payment_method                                        payments_payment_method
+  description                                           String?                 @db.VarChar(255)
+  invoice_url                                           String?                 @db.VarChar(512)
+  attempted_at                                          DateTime                @db.DateTime(0)
+  confirmed_at                                          DateTime?               @db.DateTime(0)
+  refunded_at                                           DateTime?               @db.DateTime(0)
+  failure_reason                                        String?                 @db.VarChar(255)
+  response_data                                         String?                 @db.LongText
+  created_at                                            DateTime?               @default(now()) @db.Timestamp(0)
+  subscriptions_payments_subscription_idTosubscriptions subscriptions           @relation("payments_subscription_idTosubscriptions", fields: [subscription_id], references: [id], onUpdate: Restrict, map: "payments_ibfk_1")
+  users                                                 users                   @relation(fields: [user_id], references: [id], onUpdate: Restrict, map: "payments_ibfk_2")
+  subscriptions_subscriptions_last_payment_idTopayments subscriptions[]         @relation("subscriptions_last_payment_idTopayments")
 
+  @@index([external_payment_id], map: "idx_external_id")
+  @@index([user_id], map: "idx_user_payments")
   @@index([subscription_id], map: "subscription_id")
 }
 
 model plans {
   id            Int             @id @default(autoincrement()) @db.UnsignedInt
+  external_id   Int
   name          String          @db.VarChar(100)
   amount        Decimal         @db.Decimal(10, 2)
   currency      String          @db.VarChar(3)
   interval      plans_interval
   description   String?         @db.Text
+  is_active     Boolean?        @default(true)
   created_at    DateTime?       @default(now()) @db.Timestamp(0)
   updated_at    DateTime?       @default(now()) @db.Timestamp(0)
   subscriptions subscriptions[]
 }
 
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model subscriptions {
-  id                Int                    @id @default(autoincrement()) @db.UnsignedInt
-  user_id           Int                    @db.UnsignedInt
-  plan_id           Int                    @db.UnsignedInt
-  status            subscriptions_status   @default(active)
-  start_date        DateTime               @db.DateTime(0)
-  next_billing_date DateTime               @db.DateTime(0)
-  interval          subscriptions_interval
-  grace_period_days Int?                   @default(0)
-  last_payment_id   Int?                   @db.UnsignedInt
-  created_at        DateTime?              @default(now()) @db.Timestamp(0)
-  updated_at        DateTime?              @default(now()) @db.Timestamp(0)
-  payments          payments[]
-  plans             plans                  @relation(fields: [plan_id], references: [id], onUpdate: Restrict, map: "subscriptions_ibfk_1")
+  id                                               Int                    @id @default(autoincrement()) @db.UnsignedInt
+  user_id                                          Int                    @db.UnsignedInt
+  plan_id                                          Int                    @db.UnsignedInt
+  status                                           subscriptions_status   @default(active)
+  start_date                                       DateTime               @db.DateTime(0)
+  end_date                                         DateTime?              @db.DateTime(0)
+  next_billing_date                                DateTime?              @db.DateTime(0)
+  interval                                         subscriptions_interval
+  grace_period_days                                Int?                   @default(0)
+  trial_end_at                                     DateTime?              @db.DateTime(0)
+  cancellation_reason                              String?                @db.VarChar(255)
+  last_payment_id                                  Int?                   @db.UnsignedInt
+  metadata                                         String?                @db.LongText
+  created_at                                       DateTime?              @default(now()) @db.Timestamp(0)
+  updated_at                                       DateTime?              @default(now()) @db.Timestamp(0)
+  payments_payments_subscription_idTosubscriptions payments[]             @relation("payments_subscription_idTosubscriptions")
+  payments_subscriptions_last_payment_idTopayments payments?              @relation("subscriptions_last_payment_idTopayments", fields: [last_payment_id], references: [id], onUpdate: Restrict, map: "fk_last_payment_id")
+  users                                            users                  @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "subscriptions_ibfk_1")
+  plans                                            plans                  @relation(fields: [plan_id], references: [id], onUpdate: Restrict, map: "subscriptions_ibfk_2")
 
+  @@index([last_payment_id], map: "fk_last_payment_id")
+  @@index([next_billing_date], map: "idx_next_billing")
+  @@index([user_id, status], map: "idx_user_status")
   @@index([plan_id], map: "plan_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model user_external_identifiers {
+  id               Int       @id @default(autoincrement()) @db.UnsignedInt
+  user_id          Int       @db.UnsignedInt
+  platform_id      Int       @db.UnsignedInt
+  external_user_id String    @db.VarChar(255)
+  platform_name    String    @db.VarChar(100)
+  created_at       DateTime? @default(now()) @db.Timestamp(0)
+  updated_at       DateTime? @default(now()) @db.Timestamp(0)
+  users            users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "user_external_identifiers_ibfk_1")
+
+  @@unique([platform_id, external_user_id], map: "uk_platform_external_id")
+  @@index([external_user_id], map: "idx_external_user")
+  @@index([user_id, platform_id], map: "idx_user_platform")
+}
+
+model users {
+  id                        Int                         @id @default(autoincrement()) @db.UnsignedInt
+  email                     String                      @unique(map: "email") @db.VarChar(255)
+  first_name                String?                     @db.VarChar(100)
+  last_name                 String?                     @db.VarChar(100)
+  phone                     String?                     @db.VarChar(20)
+  country_code              String?                     @db.VarChar(2)
+  is_active                 Boolean?                    @default(true)
+  created_at                DateTime?                   @default(now()) @db.Timestamp(0)
+  updated_at                DateTime?                   @default(now()) @db.Timestamp(0)
+  payments                  payments[]
+  subscriptions             subscriptions[]
+  user_external_identifiers user_external_identifiers[]
 }
 
 enum subscriptions_status {
@@ -78,12 +161,12 @@ enum subscriptions_status {
   paused
   canceled
   trial
+  expired
 }
 
 enum plans_interval {
   monthly
-  yearly
-  weekly
+  biannualy
 }
 
 enum payments_status {
@@ -91,9 +174,17 @@ enum payments_status {
   paid
   failed
   refunded
+  partially_refunded
 }
 
 enum subscriptions_interval {
   monthly
-  yearly
+  biannualy
+}
+
+enum payments_payment_method {
+  credit_card
+  paypal
+  bank_transfer
+  other
 }

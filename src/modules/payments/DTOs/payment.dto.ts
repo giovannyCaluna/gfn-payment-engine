@@ -133,7 +133,7 @@ export class CardInfoDTO {
 export class UserInfoDTO {
   @IsString()
   @IsNotEmpty()
-  name: string;
+  first_name: string;
 
   @IsString()
   @IsNotEmpty()
@@ -155,14 +155,14 @@ export class UserInfoDTO {
   direccion: string;
 
   constructor(
-    name: string,
+    first_name: string,
     last_name: string,
     email: string,
     external_user_id: string,
     phone: Phone,
     direccion: string
   ) {
-    this.name = name;
+    this.first_name = first_name;
     this.last_name = last_name;
     this.email = email;
     this.external_user_id = external_user_id;
