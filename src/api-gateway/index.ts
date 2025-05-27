@@ -7,6 +7,7 @@ import paymentRoutes from '@/modules/payments/payment.controller';
 import subscriptionRoutes from '@/modules/subscriptions/subscription.controller';
 import { executeQuery } from '@/utils/query';
 import paymentPlatformRoutes from '@/modules/platforms/paymentPlatform.controller';
+import appRoutes from '@/modules/apps/app.routes';
 
 
 // Create a new express application instance
@@ -15,6 +16,8 @@ app.use(cors());
 app.use(express.json());
 app.use('/api/payments', paymentRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
+
+app.use('/api/apps', appRoutes);
 // Set the network port
 const port = process.env.PORT || 3000;
 
