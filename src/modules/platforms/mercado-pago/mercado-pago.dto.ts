@@ -27,4 +27,11 @@ class MercadoPagoPaymentDTO {
   }
 }
 
+export interface PaymentResult {
+  success: boolean;
+  message: string;
+  data?: any;
+  error?: any;
+}
+
 export { MercadoPagoPaymentDTO };

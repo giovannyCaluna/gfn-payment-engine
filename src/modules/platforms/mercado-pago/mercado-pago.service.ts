@@ -1,16 +1,18 @@
-import axios from 'axios';
+import { getAccessTokenByAppAndPlatform } from '@/modules/credentials/credentials.service';
+import { PaymentAlreadyRegistered } from '@/modules/payments/DTOs/payment-registered-user.dto';
+import { PaymentDTO } from '@/modules/payments/DTOs/payment.dto';
 import { CardTokenRequestDTO } from "@/modules/platforms/mercado-pago/DTOs/card-token-request.dto";
 import { CreatePaymentDTO } from '@/modules/platforms/mercado-pago/DTOs/create-payment.dto';
+import { CreateSubscriptionDto, CreateUserInterface } from '@/modules/subscriptions/DTO/create-subscription.dto';
+import { createSubscription, createUser, createUserExternalPlatform, obtainSuscriptionPlan } from '@/modules/subscriptions/subscrition.service';
+import axios from 'axios';
 import { randomUUID } from 'crypto';
+import { CardToken, Customer, CustomerCard, MercadoPagoConfig, Payment } from 'mercadopago';
+import { CustomerSearchData } from 'mercadopago/dist/clients/customer/search/types';
 import { CardsRequestDTO } from './DTOs/cardsRequest';
-import mercadopago, { MercadoPagoConfig, CustomerCard, Customer, Payment, CardToken } from 'mercadopago';
-import { CustomerSearchData, CustomerSearchOptions } from 'mercadopago/dist/clients/customer/search/types';
 import { TokenGenerationNoCVVDto } from './DTOs/token-generation-no-CVV.dto';
-import { createSubscription, createUser, createUserExternalPlatform } from '@/modules/subscriptions/subscrition.service';
-import { PaymentDTO } from '@/modules/payments/DTOs/payment.dto';
-import { CreateSubscriptionDto, CreateUserExternalPlatformInterface, CreateUserInterface } from '@/modules/subscriptions/DTO/create-subscription.dto';
-import { PaymentAlreadyRegistered } from '@/modules/payments/DTOs/payment-registered-user.dto';
-import { getAccessTokenByAppAndPlatform } from '@/modules/credentials/credentials.service';
+import { PaymentResult } from './mercado-pago.dto';
+
 
 
 class MercadoPagoService {
@@ -25,96 +27,227 @@ class MercadoPagoService {
     }
   }
 
-  // Crear un pago en Mercado Pago
-  async registerCardAndFirstPayment(paymentData: PaymentDTO): Promise<any> {
+// Crear un pago en Mercado Pago
+  async registerCardAndFirstPayment(paymentData: PaymentDTO): Promise<PaymentResult> {
+    // Validación inicial de datos
+    if (!paymentData.accessToken) {
+      return {
+        success: false,
+        message: 'Token de acceso no proporcionado'
+      };
+    }
+
+    if (!paymentData.userInfo?.email) {
+      return {
+        success: false,
+        message: 'Información del usuario incompleta'
+      };
+    }
+
+    // Configuración inicial
     const client = new MercadoPagoConfig({
       accessToken: paymentData.accessToken,
+      options: { timeout: 5000 } // Timeout para evitar esperas infinitas
     });
-    const customer = new Customer(client);
-    const filter: CustomerSearchData = { options: { email: paymentData.userInfo.email } };
 
+    const customer = new Customer(client);
     const customerCard = new CustomerCard(client);
+    const filter: CustomerSearchData = { 
+      options: { 
+        email: paymentData.userInfo.email,
+        limit: 1 
+      } 
+    };
 
     try {
-
+      // Buscar cliente existente
       const response = await customer.search(filter);
       let customerInfo = response.results?.[0];
+
+      // Flujo para cliente nuevo
       if (!customerInfo) {
-        const createCustomerData = {
-          body: paymentData.userInfo
-        }
-        const newCustomer = await customer.create(createCustomerData);
-        if (newCustomer) {
-          customerInfo = newCustomer;
-
-          // Creacion del usuario dentro de Despues de la creacion del usuario mercado pago
-          const createCustomerInfo: CreateUserInterface = {
-            email: paymentData.userInfo.email,
-            first_name: customerInfo.first_name,
-            last_name: customerInfo.last_name,
-            phone: customerInfo.phone,
-            country_code: 'CL',
-            is_active: true,
-            created_at: new Date,
-          }
-          console.log('Cliente creado:', customerInfo.id);
-          const userCreated = await createUser(createCustomerInfo);
-
-          // Creacion de user_external_id para identificar de que plataforma llega el usuario.
-          const createUserExternal: CreateUserExternalPlatformInterface = {
-
-            user_id: userCreated.id,
-            platform_id: 1,
-            external_user_id: customerInfo.id,
-            platform_name: 'Mercado pago',
-            created_at: new Date,
-          }
-          const externalUserCreated = await createUserExternalPlatform(createUserExternal);
-
-
-          return newCustomer;
-        }
-
-      } else {
-        console.log('ℹCliente ya existe:', customerInfo.id);
+        return await this.handleNewCustomerFlow(
+          customer,
+          customerCard,
+          paymentData
+        );
       }
 
-      if (!customerInfo?.id) {
-        throw new Error("No se pudo obtener el ID del cliente");
-      }
+      // Flujo para cliente existente
+      console.log('ℹ Cliente ya existe en plataforma de pago:', customerInfo.id);
+      return await this.handleExistingCustomerFlow(
+        customerInfo,
+        customerCard,
+        paymentData
+      );
 
-      if (!paymentData.cardInfo) {
-        throw new Error("Token de tarjeta no proporcionado");
-      }
-
-      // 3. Almacenar tarjeta asociada al customer_id
-      const cardResponse = await customerCard.create({
-        customerId: customerInfo.id,
-        body: paymentData.cardInfo// Token generado en el frontend
-      });
-      console.log("💳 Tarjeta almacenada:", cardResponse.id);
-
-      if (cardResponse.id) {
-
-        const currentDate = new Date();
-        const nextBillingDate = this.addOneMonth(currentDate);
-
-        // let suscriptionData: CreateSubscriptionDto = {
-        //   user_id: 123,
-        //   plan_id: 1,
-        //   status: 'active',
-        //   start_date: currentDate.toISOString(), // ISO string or 'YYYY-MM-DD HH:mm:ss'
-        //   next_billing_date: nextBillingDate.toISOString(),
-        //   interval: 'monthly'
-        // };
-
-        // const result = await createSubscription(suscriptionData);
-
-      }
-      return response.results;
     } catch (error: any) {
-      throw new Error('Error al crear el pago en Mercado Pago: ' + error.message);
+      console.error('Error en el proceso de pago:', {
+        error: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString()
+      });
+      
+      return {
+        success: false,
+        message: 'Error al procesar el pago',
+        error: {
+          description: error.message,
+          cause: error.cause?.[0]?.description || 'Desconocido'
+        }
+      };
     }
+  }
+
+  private async handleNewCustomerFlow(
+    customer: Customer,
+    customerCard: CustomerCard,
+    paymentData: PaymentDTO
+  ): Promise<PaymentResult> {
+    try {
+      // 1. Crear cliente en Mercado Pago
+      const newCustomer = await customer.create({
+        body: paymentData.userInfo
+      });
+
+      if (!newCustomer?.id) {
+        throw new Error('Fallo al crear el usuario en la plataforma de pago');
+      }
+
+      console.log('Cliente creado:', newCustomer.id);
+
+      // 2. Crear usuario en base de datos local
+      const userCreated = await this.createLocalUser(newCustomer, paymentData);
+      if (!userCreated?.id) {
+        throw new Error('Fallo al crear el usuario en la plataforma local');
+      }
+
+      // 3. Registrar tarjeta
+      const cardResponse = await this.registerCustomerCard(
+        customerCard,
+        newCustomer.id,
+        paymentData.cardInfo
+      );
+
+      // 4. Crear suscripción
+      const subscriptionResult = await this.createSubscription(
+        userCreated.id,
+        paymentData.productInfo
+      );
+
+      // 4. Crear pago
+      const paymentResult = await this.createSubscription(
+        userCreated.id,
+        paymentData.productInfo
+      );
+
+      return {
+        success: true,
+        message: 'Pago y registro completados exitosamente',
+        data: {
+          customer: newCustomer,
+          card: cardResponse,
+          subscription: subscriptionResult
+        }
+      };
+
+    } catch (error: any) {
+      console.error('Error en flujo de nuevo cliente:', error);
+      throw error;
+    }
+  }
+
+  private async createLocalUser(
+    mercadoPagoCustomer: any,
+    paymentData: PaymentDTO
+  ): Promise<any> {
+    const userData: CreateUserInterface = {
+      email: paymentData.userInfo.email,
+      first_name: mercadoPagoCustomer.first_name,
+      last_name: mercadoPagoCustomer.last_name,
+      phone: mercadoPagoCustomer.phone || paymentData.userInfo.phone,
+      country_code: 'CL',
+      is_active: true,
+      created_at: new Date()
+    };
+
+    const userCreated = await createUser(userData);
+    
+    // Crear relación de usuario externo
+    if (userCreated?.id) {
+      await createUserExternalPlatform({
+        user_id: userCreated.id,
+        platform_id: 1,
+        external_user_id: mercadoPagoCustomer.id,
+        platform_name: paymentData.method,
+        created_at: new Date()
+      });
+    }
+
+    return userCreated;
+  }
+
+  private async registerCustomerCard(
+    customerCard: CustomerCard,
+    customerId: string,
+    cardInfo: any
+  ): Promise<any> {
+    if (!cardInfo?.token) {
+      throw new Error('Token de tarjeta no válido');
+    }
+
+    const cardResponse = await customerCard.create({
+      customerId,
+      body: cardInfo
+    });
+
+    if (!cardResponse?.id) {
+      throw new Error('Error al guardar la tarjeta de crédito');
+    }
+
+    console.log("Tarjeta almacenada:", cardResponse.id);
+    return cardResponse;
+  }
+
+  private async createSubscription(
+    userId: number,
+    productInfo: any
+  ): Promise<any> {
+    const selectedPlan = await obtainSuscriptionPlan(productInfo);
+    if (!selectedPlan?.id) {
+      throw new Error('Plan de suscripción no válido');
+    }
+
+    const currentDate = new Date();
+    const nextBillingDate = this.addOneMonth(currentDate);
+    const subscriptionData: CreateSubscriptionDto = {
+      user_id: userId,
+      plan_id: selectedPlan.id,
+      start_date: currentDate.toISOString(),
+      end_date: nextBillingDate.toISOString(),
+      next_billing_date: nextBillingDate.toISOString(),
+      amount: selectedPlan.amount,
+      interval: selectedPlan.interval,
+      created_at: currentDate
+    };
+
+    const newSuscription = await createSubscription(subscriptionData);
+
+    if (!newSuscription?.id) {
+      throw new Error('Error al crear la suscripcion');
+    }
+    return newSuscription;
+  }
+
+
+  private async handleExistingCustomerFlow(
+    customerInfo: any,
+    customerCard: CustomerCard,
+    paymentData: PaymentDTO
+  ): Promise<PaymentResult> {
+    // Implementar lógica para clientes existentes
+    // (similar al flujo de nuevo cliente pero sin crear usuario)
+    throw new Error('Flujo para cliente existente no implementado');
   }
 
   // Consultar el estado de un pago en Mercado Pago
@@ -226,7 +359,7 @@ class MercadoPagoService {
     const payment = new Payment(client);
 
     const paymentData = {
-      transaction_amount:data.productInfo.auto_recurring.transaction_amount, // Amount to be charged
+      transaction_amount: data.productInfo.auto_recurring.transaction_amount, // Amount to be charged
       payment_method_id: data.cardInfo.payment_method_id, // Payment method ID (e.g., 'visa', 'master')
       payer: {
         type: 'customer',
@@ -279,7 +412,7 @@ class MercadoPagoService {
     return reponse;
   }
 
-  addOneMonth(date: Date): Date {
+  private addOneMonth(date: Date): Date {
     const result = new Date(date);
     result.setMonth(result.getMonth() + 1);
     return result;

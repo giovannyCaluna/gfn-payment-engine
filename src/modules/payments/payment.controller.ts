@@ -18,7 +18,6 @@ const paymentService = new PaymentService();
 router.post('/register', async (req: Request, res: Response) => {
   try {
     const paymentData :PaymentDTO = req.body
-    console.log('Datos procesados para pago:', paymentData);
     const result = await paymentService.registerCardAndFirstPayment(paymentData);
     res.json({ result: result});
   } catch (error: any) {

@@ -1,14 +1,13 @@
 
-import 'dotenv/config'; 
+import 'dotenv/config';
 
-import express, { Request, Response } from 'express';
-import cors from 'cors';
-import paymentRoutes from '@/modules/payments/payment.controller';
-import subscriptionRoutes from '@/modules/subscriptions/subscription.controller';
-import { executeQuery } from '@/utils/query';
-import paymentPlatformRoutes from '@/modules/platforms/paymentPlatforms.routes';
 import appRoutes from '@/modules/apps/app.routes';
 import CredentialsRoutes from '@/modules/credentials/credentials.routes';
+import paymentRoutes from '@/modules/payments/payment.controller';
+import paymentPlatformRoutes from '@/modules/platforms/paymentPlatforms.routes';
+import subscriptionRoutes from '@/modules/subscriptions/subscription.controller';
+import cors from 'cors';
+import express, { Request, Response } from 'express';
 
 
 // Create a new express application instance
