@@ -1,7 +1,7 @@
 
 import prisma from 'lib/prisma';
 import { Request, Response } from 'express';
-import { CreateSubscriptionDto, CreateUserExternalPlatformInterface, CreateUserInterface } from './DTO/create-subscription.dto';
+import { CreateSubscriptionDto, CreateUserExternalPlatformInterface, CreateUserInterface, findPlansInterface } from './DTO/create-subscription.dto';
 
 
 
@@ -22,9 +22,11 @@ export const createSubscription = async (dto: CreateSubscriptionDto) => {
       user_id: dto.user_id,
       plan_id: dto.plan_id,
       status: dto.status ?? 'active',
-      start_date: new Date(dto.start_date),
-      next_billing_date: new Date(dto.next_billing_date),
+      start_date: dto.start_date,
+      end_date: dto.start_date,
+      next_billing_date: dto.next_billing_date,
       interval: dto.interval,
+      amount: dto.amount,
       grace_period_days: dto.grace_period_days ?? 0,
       last_payment_id: dto.last_payment_id ?? null,
     },
@@ -64,4 +66,15 @@ export const createUserExternalPlatform = async (dto: CreateUserExternalPlatform
   });
 
   return newUser;
+}
+
+export const obtainSuscriptionPlan = async (dto: findPlansInterface) => {
+
+  const selectedPlan = await prisma.plans.findUnique({
+    where: {
+      external_id: dto.external_id,
+    }
+  });
+
+  return selectedPlan;
 }

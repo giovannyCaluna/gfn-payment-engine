@@ -85,7 +85,7 @@ model payments {
 
 model plans {
   id            Int             @id @default(autoincrement()) @db.UnsignedInt
-  external_id   Int
+  external_id   Int             @unique(map: "external_id")
   name          String          @db.VarChar(100)
   amount        Decimal         @db.Decimal(10, 2)
   currency      String          @db.VarChar(3)
@@ -106,6 +106,7 @@ model subscriptions {
   start_date                                       DateTime               @db.DateTime(0)
   end_date                                         DateTime?              @db.DateTime(0)
   next_billing_date                                DateTime?              @db.DateTime(0)
+  amount                                           Decimal                @db.Decimal(10, 2)
   interval                                         subscriptions_interval
   grace_period_days                                Int?                   @default(0)
   trial_end_at                                     DateTime?              @db.DateTime(0)
