@@ -6,7 +6,9 @@ import { CardsRequestDTO } from './DTOs/cardsRequest';
 import mercadopago, { MercadoPagoConfig, CustomerCard, Customer, Payment, CardToken } from 'mercadopago';
 import { CustomerSearchData, CustomerSearchOptions } from 'mercadopago/dist/clients/customer/search/types';
 import { TokenGenerationNoCVVDto } from './DTOs/token-generation-no-CVV.dto';
+import { createSubscription, createUser, createUserExternalPlatform } from '@/modules/subscriptions/subscrition.service';
 import { PaymentDTO } from '@/modules/payments/DTOs/payment.dto';
+import { CreateSubscriptionDto, CreateUserExternalPlatformInterface, CreateUserInterface } from '@/modules/subscriptions/DTO/create-subscription.dto';
 import { PaymentAlreadyRegistered } from '@/modules/payments/DTOs/payment-registered-user.dto';
 
 
@@ -42,8 +44,37 @@ class MercadoPagoService {
           body: paymentData.userInfo
         }
         const newCustomer = await customer.create(createCustomerData);
-        customerInfo = newCustomer;
-        console.log('Cliente creado:', customerInfo.id);
+        if (newCustomer) {
+          customerInfo = newCustomer;
+
+          // Creacion del usuario dentro de Despues de la creacion del usuario mercado pago
+          const createCustomerInfo: CreateUserInterface = {
+            email: paymentData.userInfo.email,
+            first_name: customerInfo.first_name,
+            last_name: customerInfo.last_name,
+            phone: customerInfo.phone,
+            country_code: 'CL',
+            is_active: true,
+            created_at: new Date,
+          }
+          console.log('Cliente creado:', customerInfo.id);
+          const userCreated = await createUser(createCustomerInfo);
+
+          // Creacion de user_external_id para identificar de que plataforma llega el usuario.
+          const createUserExternal: CreateUserExternalPlatformInterface = {
+
+            user_id: userCreated.id,
+            platform_id: 1,
+            external_user_id: customerInfo.id,
+            platform_name: 'Mercado pago',
+            created_at: new Date,
+          }
+          const externalUserCreated = await createUserExternalPlatform(createUserExternal);
+
+
+          return newCustomer;
+        }
+
       } else {
         console.log('ℹCliente ya existe:', customerInfo.id);
       }
@@ -62,6 +93,24 @@ class MercadoPagoService {
         body: paymentData.cardInfo// Token generado en el frontend
       });
       console.log("💳 Tarjeta almacenada:", cardResponse.id);
+
+      if (cardResponse.id) {
+
+        const currentDate = new Date();
+        const nextBillingDate = this.addOneMonth(currentDate);
+
+        // let suscriptionData: CreateSubscriptionDto = {
+        //   user_id: 123,
+        //   plan_id: 1,
+        //   status: 'active',
+        //   start_date: currentDate.toISOString(), // ISO string or 'YYYY-MM-DD HH:mm:ss'
+        //   next_billing_date: nextBillingDate.toISOString(),
+        //   interval: 'monthly'
+        // };
+
+        // const result = await createSubscription(suscriptionData);
+
+      }
       return response.results;
     } catch (error: any) {
       throw new Error('Error al crear el pago en Mercado Pago: ' + error.message);
@@ -223,6 +272,11 @@ class MercadoPagoService {
     return reponse;
   }
 
+  addOneMonth(date: Date): Date {
+    const result = new Date(date);
+    result.setMonth(result.getMonth() + 1);
+    return result;
+  }
 
 
 
