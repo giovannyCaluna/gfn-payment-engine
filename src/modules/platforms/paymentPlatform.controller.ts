@@ -1,35 +1,36 @@
 import * as PlatformService from './paymentPlatform.service';
 import { Router, Request, Response } from 'express';
+import * as paymentPlatformModel from './paymentPlatform.model';
+import { CreatePaymentPlatformDTO } from './DTOs/create-platform.dto';
 
-import { getAllPlatforms } from '@/modules/platforms/paymentPlatform.service';
 
-const router = Router();
-router.get('/', async (req: Request, res: Response) => {
-  try {
-    const result = await getAllPlatforms(req, res);
-    res.json(result);
-  } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+export const create = async (req: Request, res: Response) => {
+  const data:CreatePaymentPlatformDTO = req.body;
+  const app = await paymentPlatformModel.createPaymentPlatform(data);
+  res.status(201).json(app);
+};
 
-router.get('/country/:code', async (req: any, res: any) => {
-  const platforms = await PlatformService.getPlatformById(req.params.code, res);
-  res.json(platforms);
-});
-// router.post('/', async (req, res) => {
-//   const result = await PlatformService.addPlatform(req.body);
-//   res.status(201).json(result);
-// });
+export const list = async (_req: Request, res: Response) => {
+  const apps = await paymentPlatformModel.getAllPlatforms();
+  res.json(apps);
+};
 
-// router.put('/:id', async (req, res) => {
-//   const result = await PlatformService.editPlatform(req.params.id, req.body);
-//   res.json(result);
-// });
+export const get = async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  const app = await paymentPlatformModel.getPlatformById(id);
+  if (!app) return res.status(404).json({ message: 'App not found' });
+  res.json(app);
+};
 
-// router.delete('/:id', async (req, res) => {
-//   const result = await PlatformService.removePlatform(Number(req.params.id));
-//   res.json(result);
-// });
+export const update = async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  const app = await paymentPlatformModel.updatePlatformId(id, req.body);
+  res.json(app);
+};
 
-export default router;
+export const remove = async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  await paymentPlatformModel.deletePlatformId(id);
+  res.status(204).send();
+};
+

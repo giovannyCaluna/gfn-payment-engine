@@ -87,7 +87,6 @@ router.post('/execute-payment', async (req: Request, res: Response) => {
   try {
     const paymentData: PaymentAlreadyRegistered = req.body;
     const token = await paymentService.executePayment(paymentData);
-    console.log("token", token);
     res.json( token );
   }
   catch (error: any) {

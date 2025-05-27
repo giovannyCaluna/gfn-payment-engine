@@ -10,7 +10,7 @@ import { createSubscription, createUser, createUserExternalPlatform } from '@/mo
 import { PaymentDTO } from '@/modules/payments/DTOs/payment.dto';
 import { CreateSubscriptionDto, CreateUserExternalPlatformInterface, CreateUserInterface } from '@/modules/subscriptions/DTO/create-subscription.dto';
 import { PaymentAlreadyRegistered } from '@/modules/payments/DTOs/payment-registered-user.dto';
-
+import { getAccessTokenByAppAndPlatform } from '@/modules/credentials/credentials.service';
 
 
 class MercadoPagoService {
@@ -203,8 +203,15 @@ class MercadoPagoService {
     return null;
   }
   async executePayment(data: PaymentAlreadyRegistered): Promise<any> {
+
+    const access_token = await getAccessTokenByAppAndPlatform({
+      app_id: data.app_id,
+      platform_id: data.platform_id,
+      country_code: data.country_code
+    }); 
+
     const client = new MercadoPagoConfig({
-      accessToken: this.accessToken,
+      accessToken: access_token.toString(),
     });
     const dataCard: TokenGenerationNoCVVDto = {
       card_id: data.cardInfo.card_id,

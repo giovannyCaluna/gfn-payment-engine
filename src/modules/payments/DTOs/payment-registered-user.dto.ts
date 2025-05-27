@@ -35,11 +35,13 @@ export interface UserInfo {
 }
 
 export interface PaymentAlreadyRegistered {
-  appId: string;
+  app_id: number;
   method: string;
+  platform_id: number;
   customer_id: string;
   userInfo: UserInfo;
   productInfo: ProductInfo;
   cardInfo: CardInfo;
+  country_code: string;
 }
 

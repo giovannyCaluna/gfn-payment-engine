@@ -6,8 +6,9 @@ import cors from 'cors';
 import paymentRoutes from '@/modules/payments/payment.controller';
 import subscriptionRoutes from '@/modules/subscriptions/subscription.controller';
 import { executeQuery } from '@/utils/query';
-import paymentPlatformRoutes from '@/modules/platforms/paymentPlatform.controller';3
+import paymentPlatformRoutes from '@/modules/platforms/paymentPlatforms.routes';
 import appRoutes from '@/modules/apps/app.routes';
+import CredentialsRoutes from '@/modules/credentials/credentials.routes';
 
 
 // Create a new express application instance
@@ -16,6 +17,9 @@ app.use(cors());
 app.use(express.json());
 app.use('/api/payments', paymentRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
+app.use('api/payment-platforms', paymentPlatformRoutes);
+app.use('/api/credentials', CredentialsRoutes);
+
 
 app.use('/api/apps', appRoutes);
 // Set the network port
