@@ -32,12 +32,19 @@ export interface UserInfoDTO {
   phone: Phone;
 }
 
+export interface CardInfo {
+  token: string;
+  payment_method_id: string;
+  customer_id: string;
+  card_id:string
+}
+
 export interface PaymentDTO {
 
   accessToken: string;
   method: string;
   userInfo: UserInfoDTO;
-  cardInfo: CustomerCardBody;
+  cardInfo: CardInfo;
   productInfo: findPlansInterface;
 }
 

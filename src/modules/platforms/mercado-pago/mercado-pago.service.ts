@@ -27,7 +27,7 @@ class MercadoPagoService {
     }
   }
 
-// Crear un pago en Mercado Pago
+  // Crear un pago en Mercado Pago
   async registerCardAndFirstPayment(paymentData: PaymentDTO): Promise<PaymentResult> {
     // Validación inicial de datos
     if (!paymentData.accessToken) {
@@ -52,11 +52,11 @@ class MercadoPagoService {
 
     const customer = new Customer(client);
     const customerCard = new CustomerCard(client);
-    const filter: CustomerSearchData = { 
-      options: { 
+    const filter: CustomerSearchData = {
+      options: {
         email: paymentData.userInfo.email,
-        limit: 1 
-      } 
+        limit: 1
+      }
     };
 
     try {
@@ -87,7 +87,7 @@ class MercadoPagoService {
         stack: error.stack,
         timestamp: new Date().toISOString()
       });
-      
+
       return {
         success: false,
         message: 'Error al procesar el pago',
@@ -129,16 +129,25 @@ class MercadoPagoService {
         paymentData.cardInfo
       );
 
+      paymentData.cardInfo ={
+        token:'',
+        card_id: cardResponse.id,
+        payment_method_id: cardResponse.payment_method.id,
+        customer_id: newCustomer.id
+      }
       // 4. Crear suscripción
       const subscriptionResult = await this.createSubscription(
         userCreated.id,
         paymentData.productInfo
       );
 
+
       // 4. Crear pago
-      const paymentResult = await this.createSubscription(
-        userCreated.id,
-        paymentData.productInfo
+      const paymentResult = await this.createFirtPayment(
+        newCustomer.id,
+        cardResponse,
+        subscriptionResult,
+        paymentData
       );
 
       return {
@@ -172,7 +181,7 @@ class MercadoPagoService {
     };
 
     const userCreated = await createUser(userData);
-    
+
     // Crear relación de usuario externo
     if (userCreated?.id) {
       await createUserExternalPlatform({
@@ -232,6 +241,33 @@ class MercadoPagoService {
     };
 
     const newSuscription = await createSubscription(subscriptionData);
+
+    if (!newSuscription?.id) {
+      throw new Error('Error al crear la suscripcion');
+    }
+    return newSuscription;
+  }
+
+  private async createFirtPayment(
+    cutomerId: string,
+    cardResponse: any,
+    subscriptionResult: any,
+    paymentData: PaymentDTO
+  ): Promise<any> {
+
+    const firstPayment: PaymentAlreadyRegistered = {
+      app_id: 2,
+      method: paymentData.method,
+      platform_id: subscriptionResult.plan_id,
+      customer_id: cutomerId,
+      userInfo: paymentData.userInfo,
+      productInfo: paymentData.productInfo,
+      cardInfo: paymentData.cardInfo,
+      country_code: 'CL'
+
+    };
+    console.log(firstPayment);
+    const newSuscription = await this.executePayment(firstPayment);
 
     if (!newSuscription?.id) {
       throw new Error('Error al crear la suscripcion');
@@ -341,15 +377,15 @@ class MercadoPagoService {
       app_id: data.app_id,
       platform_id: data.platform_id,
       country_code: data.country_code
-    }); 
+    });
 
     const client = new MercadoPagoConfig({
       accessToken: access_token.toString(),
     });
     const dataCard: TokenGenerationNoCVVDto = {
       card_id: data.cardInfo.card_id,
-      customer_id: data.cardInfo.customer_id,
-      security_code: "123"
+      customer_id: data.cardInfo.customer_id
+      // security_code: "123"
     };
 
 
@@ -359,27 +395,23 @@ class MercadoPagoService {
     const payment = new Payment(client);
 
     const paymentData = {
-      transaction_amount: data.productInfo.auto_recurring.transaction_amount, // Amount to be charged
-      payment_method_id: data.cardInfo.payment_method_id, // Payment method ID (e.g., 'visa', 'master')
+      transaction_amount: Number(data.productInfo.amount), // Convertir a número
+      payment_method_id: data.cardInfo.payment_method_id,
       payer: {
         type: 'customer',
-        id: data.cardInfo.customer_id, // must exist in your Mercado Pago account
+        id: data.cardInfo.customer_id,
       },
-      token: token.id, // Replace with a valid test card token (see below)
-      callback_url: data.productInfo.back_url, // URL to redirect after payment',
-      date_of_expiration: data.productInfo.auto_recurring.end_date, // 7 days from May 23, 2025
-      description: data.productInfo.reason, // Description of the payment
-      differential_pricing_id: undefined, // Set if using differential pricing
-      external_reference: data.productInfo.external_reference, // External reference for your records',
+      token: token.id,
+      description: 'Descripción de producto',
+      differential_pricing_id: undefined,
+      external_reference: "123",
       installments: 1,
       notification_url: 'https://your-app.com/webhook'
     };
 
-
-
     const paymentResponse = await payment.create({
       body: paymentData,
-      requestOptions: { idempotencyKey: `PAY_${Date.now()}` }, // Unique idempotency key
+      requestOptions: { idempotencyKey: `PAY_${Date.now()}` },
     });
 
 
@@ -405,7 +437,7 @@ class MercadoPagoService {
     const body = {
       card_id: data.card_id,
       customer_id: data.customer_id,
-      security_code: data.security_code
+      security_code: ''
     };
 
     const reponse = await cardToken.create({ body: body });

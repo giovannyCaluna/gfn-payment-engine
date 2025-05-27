@@ -1,4 +1,7 @@
 import { Phone } from 'mercadopago/dist/clients/commonTypes';
+import { CardInfo, UserInfoDTO } from './payment.dto';
+import { findPlansInterface } from '@/modules/subscriptions/DTO/create-subscription.dto';
+import { CustomerCardBody } from 'mercadopago/dist/clients/customerCard/create/types';
 
 export interface AutoRecurring {
   frequency: number;
@@ -19,28 +22,16 @@ export interface ProductInfo {
   back_url: string;
 }
 
-export interface CardInfo {
-  card_id: string;
-  customer_id: string;
-  payment_method_id: string;
-}
 
-export interface UserInfo {
-  name: string;
-  last_name: string;
-  email: string;
-  external_user_id: string;
-  phone: Phone;
-  direccion: string;
-}
+
 
 export interface PaymentAlreadyRegistered {
   app_id: number;
   method: string;
   platform_id: number;
   customer_id: string;
-  userInfo: UserInfo;
-  productInfo: ProductInfo;
+  userInfo: UserInfoDTO;
+  productInfo: findPlansInterface;
   cardInfo: CardInfo;
   country_code: string;
 }
