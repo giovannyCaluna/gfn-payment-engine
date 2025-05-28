@@ -7,5 +7,7 @@ router.post('/create', platformController.create);
 router.get('/', platformController.list);
 router.put('/:id', platformController.update);
 router.delete('/:id', platformController.remove);
+router.get('/available', platformController.listPlatformsByCountry);
+
 
 export default router;

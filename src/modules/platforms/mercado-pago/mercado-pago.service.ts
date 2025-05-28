@@ -379,16 +379,11 @@ class MercadoPagoService {
       accessToken: this.accessToken,
     });
     const cardToken = new CardToken(client);
-    // const body = {
-    //   card_id: "1743519795673",
-    //   customer_id: "2362240901-LkCLVlyiGixvC4",
-    //   security_code: "123"
-    // }
-
+  
     const body = {
       card_id: data.card_id,
       customer_id: data.customer_id,
-      security_code: ''
+      security_code: '123'
     };
 
     const reponse = await cardToken.create({ body: body });

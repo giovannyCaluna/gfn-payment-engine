@@ -4,10 +4,10 @@ import prisma from 'lib/prisma';
 import { Request, Response } from 'express';
 
 
-export const addPlatform = PlatformModel.createPlatform;
-export const editPlatform = PlatformModel.updatePlatform;
-export const removePlatform = PlatformModel.deletePlatform;
-export const findPlatformsByCountry = PlatformModel.getPlatformsByCountry;
+export const addPlatform = PlatformModel.createPaymentPlatform;
+export const editPlatform = PlatformModel.updatePlatformId;
+export const removePlatform = PlatformModel.deletePlatformId;
+export const findPlatformsByCountry = PlatformModel.getPlatformById;
 
 
 export const getAllPlatforms = async (req: Request, res: Response) => {
@@ -24,18 +24,25 @@ export const getAllPlatforms = async (req: Request, res: Response) => {
   }
 };
 
-export const getPlatformById = async (country: string, res: Response) => {
-  try {
-    const platforms = await prisma.payment_platforms.findMany({
-      where: { country_available: country },
-    });
-    const serializedPlatforms = platforms.map(platform => ({
-      ...platform,
-      id: platform.id.toString(),
-    }));
-    res.json(serializedPlatforms);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error fetching platform' });
-  }
+export const getAvailablePlatformsByCountry = async (countryCode: string) => {
+  const platforms = await prisma.payment_platforms.findMany({
+    where: {
+      status: true,
+      app_platform_credentials: {
+        some: {
+          country_code: countryCode
+        }
+      }
+    },
+    select: {
+      id: true,
+      name: true,
+      code: true,
+      description: true,
+      website_url: true,
+      logo_url: true
+    }
+  });
+
+  return platforms;
 };

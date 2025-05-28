@@ -1,15 +1,15 @@
 import express, { Request, Response } from 'express';
 import PaymentService from './payment.service';
 import { PaymentDTO, PaymentStatusDTO } from '@/modules/payments/DTOs/payment.dto';
-import { CreatePaymentDTO } from '../platforms/mercado-pago/DTOs/create-payment.dto';
-import { CardsRequestDTO } from '../platforms/mercado-pago/DTOs/cards -request';
+import { CreatePaymentDTO } from '@/modules/platforms/mercado-pago/DTOs/mp-create-payment.dto';
+import { CardsRequestDTO } from '@/modules/platforms/mercado-pago/DTOs/cards -request';
 import { createSubscription, getAllSubscriptions } from '@/modules/subscriptions/subscrition.service';
-import { CreateSubscriptionDto } from './../subscriptions/DTO/create-subscription.dto';
-import { ExecutePaymentDto } from './DTOs/executePayment.dto';
-import executePayment from './payment.integration';
-import { TokenGenerationNoCVVDto } from '../platforms/mercado-pago/DTOs/token-generation-no-cvv.dto';
+import { CreateSubscriptionDto } from '@/modules/subscriptions/DTO/create-subscription.dto';
+import { ExecutePaymentDto } from '@/modules/payments/DTOs/executePayment.dto';
+import executePayment from '@/modules/payments/payment.service';
+import { TokenGenerationNoCVVDto } from '@/modules/platforms/mercado-pago/DTOs/token-generation-no-cvv.dto';
 import { PaymentAlreadyRegistered } from '@/modules/payments/DTOs/payment-registered-user.dto';
-import { CreateTransactionPaymentDTO } from './DTOs/create-payment-transaction.dto';
+import { CreateTransactionPaymentDTO } from '@/modules/payments/DTOs/create-payment-transaction.dto';
 import prisma from 'lib/prisma';
 import { Prisma, payments_status, payments_payment_method } from '@prisma/client';
 
