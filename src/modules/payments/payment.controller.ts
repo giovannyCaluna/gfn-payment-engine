@@ -9,6 +9,9 @@ import { ExecutePaymentDto } from './DTOs/executePayment.dto';
 import executePayment from './payment.integration';
 import { TokenGenerationNoCVVDto } from '../platforms/mercado-pago/DTOs/token-generation-no-CVV.dto';
 import { PaymentAlreadyRegistered } from '@/modules/payments/DTOs/payment-registered-user.dto';
+import { CreateTransactionPaymentDTO } from './DTOs/create-payment-transaction.dto';
+import prisma from 'lib/prisma';
+import { Prisma, payments_status, payments_payment_method } from '@prisma/client';
 
 const router = express.Router();
 const paymentService = new PaymentService();
@@ -17,9 +20,9 @@ const paymentService = new PaymentService();
 // Ruta para crear un pago
 router.post('/register', async (req: Request, res: Response) => {
   try {
-    const paymentData :PaymentDTO = req.body
+    const paymentData: PaymentDTO = req.body
     const result = await paymentService.registerCardAndFirstPayment(paymentData);
-    res.json({ result: result});
+    res.json({ result: result });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
@@ -52,7 +55,7 @@ router.post('/card-token', async (req: Request, res: Response) => {
     console.log("req.body", req.body);
     const cardData = req.body;
     const token = await paymentService.generateCardToken(cardData, "mercadopago");
-   res.json({ token });
+    res.json({ token });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
@@ -61,7 +64,7 @@ router.post('/card-token', async (req: Request, res: Response) => {
 
 router.post('/generate-payment', async (req: Request, res: Response) => {
   try {
-    const paymentData:CreatePaymentDTO = req.body;
+    const paymentData: CreatePaymentDTO = req.body;
     const token = await paymentService.generatePayment(paymentData, "mercadopago");
     res.json({ token });
   } catch (error: any) {
@@ -73,7 +76,7 @@ router.post('/generate-payment', async (req: Request, res: Response) => {
 
 router.post('/get-cards', async (req: Request, res: Response) => {
   try {
-    const data:CardsRequestDTO = req.body;
+    const data: CardsRequestDTO = req.body;
     const result = await paymentService.getCards(data);
     res.json({ result });
   } catch (error: any) {
@@ -86,7 +89,7 @@ router.post('/execute-payment', async (req: Request, res: Response) => {
   try {
     const paymentData: PaymentAlreadyRegistered = req.body;
     const token = await paymentService.executePayment(paymentData);
-    res.json( token );
+    res.json(token);
   }
   catch (error: any) {
     res.status(500).json({ message: error.message });
@@ -94,10 +97,41 @@ router.post('/execute-payment', async (req: Request, res: Response) => {
 }
 );
 
+router.post('/save-payment-transaction', async (req: Request, res: Response) => {
+  try {
+    const paymentData: CreateTransactionPaymentDTO = req.body;
 
 
 
 
+
+    const result = await prisma.payments.create({
+      data: {
+        subscription_id: 1,
+        user_id: 1,
+        platform_id: 2,
+        external_payment_id: "mp-98423849823984",
+        amount: new Prisma.Decimal("150"),
+        currency: "USD",
+        status: payments_status.paid, // ✅ correct enum usage
+        payment_method: payments_payment_method.credit_card,
+        description: "Monthly subscription for GFN Premium",
+        invoice_url: "https://example.com/invoices/123456",
+        attempted_at: new Date("2025-05-23T12:30:00.000Z"),
+        confirmed_at: new Date("2025-05-23T12:31:00.000Z"),
+        refunded_at: null,
+        failure_reason: null,
+        response_data: "{\"payment_id\": \"1234567890\", \"details\": \"Successful transaction\"}"
+      }
+    });
+
+    res.json({ result });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
+);
 
 
 
