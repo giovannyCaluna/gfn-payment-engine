@@ -2,15 +2,15 @@ import { getAccessTokenByAppAndPlatform } from '@/modules/credentials/credential
 import { PaymentAlreadyRegistered } from '@/modules/payments/DTOs/payment-registered-user.dto';
 import { PaymentDTO } from '@/modules/payments/DTOs/payment.dto';
 import { CardTokenRequestDTO } from "@/modules/platforms/mercado-pago/DTOs/card-token-request.dto";
-import { CreatePaymentDTO } from '@/modules/platforms/mercado-pago/DTOs/create-payment.dto';
+import { CreatePaymentDTO } from '@/modules/platforms/mercado-pago/DTOs/mp-create-payment.dto';
 import { CreateSubscriptionDto, CreateUserInterface } from '@/modules/subscriptions/DTO/create-subscription.dto';
 import { createSubscription, createUser, createUserExternalPlatform, obtainSuscriptionPlan } from '@/modules/subscriptions/subscrition.service';
 import axios from 'axios';
 import { randomUUID } from 'crypto';
 import { CardToken, Customer, CustomerCard, MercadoPagoConfig, Payment } from 'mercadopago';
 import { CustomerSearchData } from 'mercadopago/dist/clients/customer/search/types';
-import { CardsRequestDTO } from './DTOs/cardsRequest';
-import { TokenGenerationNoCVVDto } from './DTOs/token-generation-no-CVV.dto';
+import { CardsRequestDTO } from './DTOs/cards -request';
+import { TokenGenerationNoCVVDto } from './DTOs/token-generation-no-cvv.dto';
 import { PaymentResult } from './mercado-pago.dto';
 
 
@@ -129,8 +129,8 @@ class MercadoPagoService {
         paymentData.cardInfo
       );
 
-      paymentData.cardInfo ={
-        token:'',
+      paymentData.cardInfo = {
+        token: '',
         card_id: cardResponse.id,
         payment_method_id: cardResponse.payment_method.id,
         customer_id: newCustomer.id
@@ -371,56 +371,7 @@ class MercadoPagoService {
   async generateRecurrentPayment(data: any): Promise<any> {
     return null;
   }
-  async executePayment(data: PaymentAlreadyRegistered): Promise<any> {
 
-    const access_token = await getAccessTokenByAppAndPlatform({
-      app_id: data.app_id,
-      platform_id: data.platform_id,
-      country_code: data.country_code
-    });
-
-    const client = new MercadoPagoConfig({
-      accessToken: access_token.toString(),
-    });
-    const dataCard: TokenGenerationNoCVVDto = {
-      card_id: data.cardInfo.card_id,
-      customer_id: data.cardInfo.customer_id
-      // security_code: "123"
-    };
-
-
-
-    const token = await this.generateCardTokenNoCVV(dataCard);
-
-    const payment = new Payment(client);
-
-    const paymentData = {
-      transaction_amount: Number(data.productInfo.amount), // Convertir a número
-      payment_method_id: data.cardInfo.payment_method_id,
-      payer: {
-        type: 'customer',
-        id: data.cardInfo.customer_id,
-      },
-      token: token.id,
-      description: 'Descripción de producto',
-      differential_pricing_id: undefined,
-      external_reference: "123",
-      installments: 1,
-      notification_url: 'https://your-app.com/webhook'
-    };
-
-    const paymentResponse = await payment.create({
-      body: paymentData,
-      requestOptions: { idempotencyKey: `PAY_${Date.now()}` },
-    });
-
-
-    console.log("response", paymentResponse);
-
-
-    return paymentResponse;
-
-  }
 
 
   async generateCardTokenNoCVV(data: TokenGenerationNoCVVDto): Promise<any> {
@@ -451,6 +402,57 @@ class MercadoPagoService {
   }
 
 
+  createPaymentRequestBody(data: PaymentAlreadyRegistered, tokenId: string): CreatePaymentDTO {
+    return {
+      transaction_amount: Number(data.productInfo.amount), // Convert amount to number
+      payment_method_id: data.cardInfo.payment_method_id,
+      payer: {
+        type: 'customer',
+        id: data.cardInfo.customer_id,
+      },
+      token: tokenId,
+      description: 'Descripción de producto',
+      external_reference: '123',
+      installments: 1,
+      notification_url: 'https://your-app.com/webhook',
+    };
+  }
+
+  async executePayment(data: PaymentAlreadyRegistered): Promise<any> {
+    const access_token = await getAccessTokenByAppAndPlatform({
+      app_id: data.app_id,
+      platform_id: data.platform_id,
+      country_code: data.country_code,
+    });
+
+    const client = new MercadoPagoConfig({
+      accessToken: access_token.toString(),
+    });
+
+
+    const dataCard: TokenGenerationNoCVVDto = {
+      card_id: data.cardInfo.card_id,
+      customer_id: data.cardInfo.customer_id,
+      security_code: "123" // Commented out as per original code
+    };
+
+    const token = await this.generateCardTokenNoCVV(dataCard);
+
+    const payment = new Payment(client);
+
+    const paymentData = this.createPaymentRequestBody(data, token.id);
+
+    const paymentResponse = await payment.create({
+      body: paymentData,
+      requestOptions: { idempotencyKey: `PAY_${Date.now()}` },
+    });
+
+
+
+    return paymentResponse;
+
+
+  }
 
 
 }

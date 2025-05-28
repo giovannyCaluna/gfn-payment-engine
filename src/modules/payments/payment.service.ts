@@ -2,7 +2,7 @@ import PaymentIntegrationService from './payment.integration';
 import { PaymentDTO, PaymentStatusDTO } from './DTOs/payment.dto';
 import { CardTokenRequestDTO } from '../platforms/mercado-pago/DTOs/card-token-request.dto';
 import { CreatePaymentDTO } from '@/modules/platforms/mercado-pago/DTOs/create-payment.dto';
-import { CardsRequestDTO } from '../platforms/mercado-pago/DTOs/cardsRequest';
+import { CardsRequestDTO } from '../platforms/mercado-pago/DTOs/cards -request';
 import { ExecutePaymentDto } from './DTOs/executePayment.dto';
 import { PaymentAlreadyRegistered } from '@/modules/payments/DTOs/payment-registered-user.dto';
 

@@ -2,7 +2,7 @@ import MercadoPagoService from '@/modules/platforms/mercado-pago/mercado-pago.se
 import { PaymentDTO } from '@/modules/payments/DTOs/payment.dto';
 import { CardTokenRequestDTO } from '../platforms/mercado-pago/DTOs/card-token-request.dto';
 import { CreatePaymentDTO } from '../platforms/mercado-pago/DTOs/create-payment.dto';
-import { CardsRequestDTO } from '../platforms/mercado-pago/DTOs/cardsRequest';
+import { CardsRequestDTO } from '../platforms/mercado-pago/DTOs/cards -request';
 import { PaymentAlreadyRegistered } from '@/modules/payments/DTOs/payment-registered-user.dto';
 
 // import WomService from './wo';
