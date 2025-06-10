@@ -3,6 +3,7 @@ import { PaymentDTO } from '@/modules/payments/DTOs/payment.dto';
 import MercadoPagoService from '@/modules/platforms/mercado-pago/mercado-pago.service';
 import { CardTokenRequestDTO } from '../platforms/mercado-pago/DTOs/card-token-request.dto';
 import { CardsRequestDTO } from '../platforms/mercado-pago/DTOs/cards -request';
+import { CreatePaymentDTO } from '../platforms/mercado-pago/DTOs/mp-create-payment.dto';
 
 // import WomService from './wo';
 // import StripeService from '../stripe/stripe.service';

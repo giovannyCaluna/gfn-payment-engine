@@ -415,8 +415,7 @@ class MercadoPagoService {
 
     const dataCard: TokenGenerationNoCVVDto = {
       card_id: data.cardInfo.card_id,
-      customer_id: data.cardInfo.customer_id,
-      security_code: "123" // Commented out as per original code
+      customer_id: data.cardInfo.customer_id
     };
 
     const token = await this.generateCardTokenNoCVV(dataCard);
