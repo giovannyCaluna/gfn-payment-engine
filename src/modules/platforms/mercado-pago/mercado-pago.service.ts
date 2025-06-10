@@ -12,6 +12,7 @@ import { CustomerSearchData } from 'mercadopago/dist/clients/customer/search/typ
 import { CardsRequestDTO } from './DTOs/cards -request';
 import { TokenGenerationNoCVVDto } from './DTOs/token-generation-no-cvv.dto';
 import { PaymentResult } from './mercado-pago.dto';
+import { CreateTransactionPaymentDTO } from '@/modules/payments/DTOs/create-payment-transaction.dto';
 
 
 
@@ -323,19 +324,6 @@ class MercadoPagoService {
     }
   }
 
-  async generatePayment(data: CreatePaymentDTO): Promise<any> {
-
-    const response = await axios.post(`${this.apiUrl}/v1/payments`, data, {
-      headers: {
-        Authorization: `Bearer ${this.accessToken}`,
-        'Content-Type': 'application/json',
-        'X-Idempotency-Key': randomUUID(),
-      },
-    });
-    console.log("response", response);
-    return response.data;
-  }
-
   async createuser(data: any): Promise<any> {
     return null;
   }
@@ -441,7 +429,25 @@ class MercadoPagoService {
       body: paymentData,
       requestOptions: { idempotencyKey: `PAY_${Date.now()}` },
     });
-
+console.log("paymentResponse", paymentResponse);
+    const transaction:CreateTransactionPaymentDTO = {
+      subscription_id: paymentResponse.productInfo.subscription_id,
+      user_id: 1, // This should be replaced with the actual user ID
+      platform_id: data.platform_id,
+      external_payment_id: paymentResponse.external_reference,
+      amount: paymentResponse.transaction_amount as unknown as string, // Ensure amount is a string
+      currency: paymentResponse.currency_id as unknown as string, // Ensure currency is a string
+      status: paymentResponse.status as 'pending' | 'paid' | 'failed' | 'refunded' || 'pending', // Default to 'pending'
+      payment_method: data.method,
+      description: paymentResponse.description || 'Pago realizado',
+      invoice_url: paymentResponse.init_point || '',
+      attempted_at: new Date().toISOString(),
+      confirmed_at: paymentResponse.date_approved ? new Date(paymentResponse.date_approved).toISOString() : null,
+      refunded_at: null,
+      failure_reason: paymentResponse.status_detail || null,
+      response_data: JSON.stringify(paymentResponse),
+      
+    }
 
 
     return paymentResponse;

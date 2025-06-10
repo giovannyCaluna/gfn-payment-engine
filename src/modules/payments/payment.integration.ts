@@ -1,9 +1,8 @@
-import MercadoPagoService from '@/modules/platforms/mercado-pago/mercado-pago.service';
-import { PaymentDTO } from '@/modules/payments/DTOs/payment.dto';
-import { CardTokenRequestDTO } from '../platforms/mercado-pago/DTOs/card-token-request.dto';
-import { CreatePaymentDTO } from '../platforms/mercado-pago/DTOs/create-payment.dto';
-import { CardsRequestDTO } from '../platforms/mercado-pago/DTOs/cards -request';
 import { PaymentAlreadyRegistered } from '@/modules/payments/DTOs/payment-registered-user.dto';
+import { PaymentDTO } from '@/modules/payments/DTOs/payment.dto';
+import MercadoPagoService from '@/modules/platforms/mercado-pago/mercado-pago.service';
+import { CardTokenRequestDTO } from '../platforms/mercado-pago/DTOs/card-token-request.dto';
+import { CardsRequestDTO } from '../platforms/mercado-pago/DTOs/cards -request';
 
 // import WomService from './wo';
 // import StripeService from '../stripe/stripe.service';
@@ -77,18 +76,6 @@ class PaymentIntegrationService {
     }
   }
 
-  async generatePayment(paymentData: CreatePaymentDTO, method: PaymentMethod): Promise<any> {
-    switch (method) {
-      case 'mercadopago':
-        return await this.mercadoPagoService.generatePayment(paymentData);
-      // case 'wom':
-      //   return await this.womService.generateCardToken(cardData);
-      // case 'stripe':
-      //   return await this.stripeService.generateCardToken(cardData);
-      default:
-        throw new Error('Payment method not supported');
-    }
-  }
 
 
   async getCards(data:CardsRequestDTO): Promise<any> {

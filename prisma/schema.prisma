@@ -64,7 +64,7 @@ model payments {
   external_payment_id                                   String?                 @db.VarChar(255)
   amount                                                Decimal                 @db.Decimal(10, 2)
   currency                                              String                  @db.VarChar(3)
-  status                                                payments_status         @default(pending)
+  status                                                String                  @default("pending") @db.VarChar(20)
   payment_method                                        payments_payment_method
   description                                           String?                 @db.VarChar(255)
   invoice_url                                           String?                 @db.VarChar(512)
@@ -168,14 +168,6 @@ enum subscriptions_status {
 enum plans_interval {
   monthly
   biannualy
-}
-
-enum payments_status {
-  pending
-  paid
-  failed
-  refunded
-  partially_refunded
 }
 
 enum subscriptions_interval {

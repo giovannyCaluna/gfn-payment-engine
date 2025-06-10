@@ -1,6 +1,6 @@
 // src/modules/payments/dto/create-payment.dto.ts
 
-import { payments_status, payments_payment_method } from '@prisma/client';
+import {  payments_payment_method } from '@prisma/client';
 
 export interface CreateTransactionPaymentDTO {
   subscription_id: number;
@@ -9,7 +9,7 @@ export interface CreateTransactionPaymentDTO {
   external_payment_id?: string;
   amount: string;
   currency: string;
-  status: payments_status;
+  status: string;
   payment_method: payments_payment_method;
   description?: string;
   invoice_url?: string;

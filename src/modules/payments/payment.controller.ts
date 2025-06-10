@@ -11,7 +11,7 @@ import { TokenGenerationNoCVVDto } from '@/modules/platforms/mercado-pago/DTOs/t
 import { PaymentAlreadyRegistered } from '@/modules/payments/DTOs/payment-registered-user.dto';
 import { CreateTransactionPaymentDTO } from '@/modules/payments/DTOs/create-payment-transaction.dto';
 import prisma from 'lib/prisma';
-import { Prisma, payments_status, payments_payment_method } from '@prisma/client';
+import { Prisma, payments_payment_method } from '@prisma/client';
 
 const router = express.Router();
 const paymentService = new PaymentService();
@@ -60,17 +60,7 @@ router.post('/card-token', async (req: Request, res: Response) => {
     res.status(500).json({ message: error.message });
   }
 });
-//ruta para hacer un pago
 
-router.post('/generate-payment', async (req: Request, res: Response) => {
-  try {
-    const paymentData: CreatePaymentDTO = req.body;
-    const token = await paymentService.generatePayment(paymentData, "mercadopago");
-    res.json({ token });
-  } catch (error: any) {
-    res.status(500).json({ message: error.message });
-  }
-});
 
 
 
@@ -113,7 +103,7 @@ router.post('/save-payment-transaction', async (req: Request, res: Response) => 
         external_payment_id: "mp-98423849823984",
         amount: new Prisma.Decimal("150"),
         currency: "USD",
-        status: payments_status.paid, // ✅ correct enum usage
+        status: "paid", // ✅ correct enum usage
         payment_method: payments_payment_method.credit_card,
         description: "Monthly subscription for GFN Premium",
         invoice_url: "https://example.com/invoices/123456",
