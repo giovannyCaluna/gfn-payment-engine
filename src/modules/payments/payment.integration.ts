@@ -1,4 +1,4 @@
-import { PaymentAlreadyRegistered } from '@/modules/payments/DTOs/payment-registered-user.dto';
+import { PaymentUserAlreadyRegistered } from '@/modules/payments/DTOs/payment-registered-user.dto';
 import { PaymentDTO } from '@/modules/payments/DTOs/payment.dto';
 import MercadoPagoService from '@/modules/platforms/mercado-pago/mercado-pago.service';
 import { CardTokenRequestDTO } from '../platforms/mercado-pago/DTOs/card-token-request.dto';
@@ -92,7 +92,7 @@ class PaymentIntegrationService {
         throw new Error('Payment method not supported');
     }
   }
-  async executePayment(data:PaymentAlreadyRegistered): Promise<any> {
+  async executePayment(data:PaymentUserAlreadyRegistered): Promise<any> {
     switch (data.method) {
       case 'mercadopago':
         return await this.mercadoPagoService.executePayment(data);

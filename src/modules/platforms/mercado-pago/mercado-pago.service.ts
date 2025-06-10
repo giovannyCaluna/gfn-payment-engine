@@ -1,5 +1,5 @@
 import { getAccessTokenByAppAndPlatform } from '@/modules/credentials/credentials.service';
-import { PaymentAlreadyRegistered } from '@/modules/payments/DTOs/payment-registered-user.dto';
+import { PaymentUserAlreadyRegistered } from '@/modules/payments/DTOs/payment-registered-user.dto';
 import { PaymentDTO } from '@/modules/payments/DTOs/payment.dto';
 import { CardTokenRequestDTO } from "@/modules/platforms/mercado-pago/DTOs/card-token-request.dto";
 import { CreatePaymentDTO } from '@/modules/platforms/mercado-pago/DTOs/mp-create-payment.dto';
@@ -12,7 +12,7 @@ import { CustomerSearchData } from 'mercadopago/dist/clients/customer/search/typ
 import { CardsRequestDTO } from './DTOs/cards -request';
 import { TokenGenerationNoCVVDto } from './DTOs/token-generation-no-cvv.dto';
 import { PaymentResult } from './mercado-pago.dto';
-import { CreateTransactionPaymentDTO } from '@/modules/payments/DTOs/create-payment-transaction.dto';
+import { CreateTransactionPaymentDTO, payments_payment_method } from '@/modules/payments/DTOs/create-payment-transaction.dto';
 
 
 
@@ -256,7 +256,7 @@ class MercadoPagoService {
     paymentData: PaymentDTO
   ): Promise<any> {
 
-    const firstPayment: PaymentAlreadyRegistered = {
+    const firstPayment: PaymentUserAlreadyRegistered = {
       app_id: 2,
       method: paymentData.method,
       platform_id: subscriptionResult.plan_id,
@@ -370,8 +370,7 @@ class MercadoPagoService {
   
     const body = {
       card_id: data.card_id,
-      customer_id: data.customer_id,
-      security_code: '123'
+      customer_id: data.customer_id
     };
 
     const reponse = await cardToken.create({ body: body });
@@ -385,7 +384,7 @@ class MercadoPagoService {
   }
 
 
-  createPaymentRequestBody(data: PaymentAlreadyRegistered, tokenId: string): CreatePaymentDTO {
+  createPaymentRequestBody(data: PaymentUserAlreadyRegistered, tokenId: string): CreatePaymentDTO {
     return {
       transaction_amount: Number(data.productInfo.amount), // Convert amount to number
       payment_method_id: data.cardInfo.payment_method_id,
@@ -401,7 +400,7 @@ class MercadoPagoService {
     };
   }
 
-  async executePayment(data: PaymentAlreadyRegistered): Promise<any> {
+  async executePayment(data: PaymentUserAlreadyRegistered): Promise<any> {
     const access_token = await getAccessTokenByAppAndPlatform({
       app_id: data.app_id,
       platform_id: data.platform_id,
@@ -430,16 +429,15 @@ class MercadoPagoService {
     });
 console.log("paymentResponse", paymentResponse);
     const transaction:CreateTransactionPaymentDTO = {
-      subscription_id: paymentResponse.productInfo.subscription_id,
+      subscription_id: paymentResponse.id ?? 0,
       user_id: 1, // This should be replaced with the actual user ID
       platform_id: data.platform_id,
       external_payment_id: paymentResponse.external_reference,
       amount: paymentResponse.transaction_amount as unknown as string, // Ensure amount is a string
       currency: paymentResponse.currency_id as unknown as string, // Ensure currency is a string
       status: paymentResponse.status as 'pending' | 'paid' | 'failed' | 'refunded' || 'pending', // Default to 'pending'
-      payment_method: data.method,
+      payment_method: data.method as payments_payment_method,
       description: paymentResponse.description || 'Pago realizado',
-      invoice_url: paymentResponse.init_point || '',
       attempted_at: new Date().toISOString(),
       confirmed_at: paymentResponse.date_approved ? new Date(paymentResponse.date_approved).toISOString() : null,
       refunded_at: null,

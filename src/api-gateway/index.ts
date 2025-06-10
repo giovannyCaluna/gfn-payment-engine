@@ -3,7 +3,7 @@ import 'dotenv/config';
 
 import appRoutes from '@/modules/apps/app.routes';
 import CredentialsRoutes from '@/modules/credentials/credentials.routes';
-import paymentRoutes from '@/modules/payments/payment.controller';
+import  paymentRoutes  from '@/modules/payments/payment.controller';
 import paymentPlatformRoutes from '@/modules/platforms/paymentPlatforms.routes';
 import subscriptionRoutes from '@/modules/subscriptions/subscription.controller';
 import cors from 'cors';

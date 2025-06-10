@@ -12,10 +12,11 @@ export interface CreateTransactionPaymentDTO {
   status: string;
   payment_method: payments_payment_method;
   description?: string;
-  invoice_url?: string;
-  attempted_at: string;
+   attempted_at: string;
   confirmed_at?: string | null;
   refunded_at?: string | null;
   failure_reason?: string | null;
   response_data?: string | null;
 }
+
+export { payments_payment_method };

@@ -25,7 +25,7 @@ export interface ProductInfo {
 
 
 
-export interface PaymentAlreadyRegistered {
+export interface PaymentUserAlreadyRegistered {
   app_id: number;
   method: string;
   platform_id: number;

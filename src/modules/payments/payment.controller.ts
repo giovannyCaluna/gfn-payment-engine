@@ -8,7 +8,7 @@ import { CreateSubscriptionDto } from '@/modules/subscriptions/DTO/create-subscr
 import { ExecutePaymentDto } from '@/modules/payments/DTOs/executePayment.dto';
 import executePayment from '@/modules/payments/payment.service';
 import { TokenGenerationNoCVVDto } from '@/modules/platforms/mercado-pago/DTOs/token-generation-no-cvv.dto';
-import { PaymentAlreadyRegistered } from '@/modules/payments/DTOs/payment-registered-user.dto';
+import { PaymentUserAlreadyRegistered } from '@/modules/payments/DTOs/payment-registered-user.dto';
 import { CreateTransactionPaymentDTO } from '@/modules/payments/DTOs/create-payment-transaction.dto';
 import prisma from 'lib/prisma';
 import { Prisma, payments_payment_method } from '@prisma/client';
@@ -77,7 +77,7 @@ router.post('/get-cards', async (req: Request, res: Response) => {
 
 router.post('/execute-payment', async (req: Request, res: Response) => {
   try {
-    const paymentData: PaymentAlreadyRegistered = req.body;
+    const paymentData: PaymentUserAlreadyRegistered = req.body;
     const token = await paymentService.executePayment(paymentData);
     res.json(token);
   }
@@ -89,32 +89,8 @@ router.post('/execute-payment', async (req: Request, res: Response) => {
 
 router.post('/save-payment-transaction', async (req: Request, res: Response) => {
   try {
-    const paymentData: CreateTransactionPaymentDTO = req.body;
-
-
-
-
-
-    const result = await prisma.payments.create({
-      data: {
-        subscription_id: 1,
-        user_id: 1,
-        platform_id: 2,
-        external_payment_id: "mp-98423849823984",
-        amount: new Prisma.Decimal("150"),
-        currency: "USD",
-        status: "paid", // ✅ correct enum usage
-        payment_method: payments_payment_method.credit_card,
-        description: "Monthly subscription for GFN Premium",
-        invoice_url: "https://example.com/invoices/123456",
-        attempted_at: new Date("2025-05-23T12:30:00.000Z"),
-        confirmed_at: new Date("2025-05-23T12:31:00.000Z"),
-        refunded_at: null,
-        failure_reason: null,
-        response_data: "{\"payment_id\": \"1234567890\", \"details\": \"Successful transaction\"}"
-      }
-    });
-
+    const data: CreateTransactionPaymentDTO = req.body;
+    const result = paymentService.savePayment(data);
     res.json({ result });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
@@ -122,8 +98,6 @@ router.post('/save-payment-transaction', async (req: Request, res: Response) => 
 }
 
 );
-
-
 
 
 
