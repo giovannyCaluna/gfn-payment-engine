@@ -25,7 +25,14 @@ class MercadoPagoService {
   // Crear un pago en Mercado Pago
   async registerCardAndFirstPayment(paymentData: PaymentDTO): Promise<PaymentResult> {
     // Validación inicial de datos
-    if (!paymentData.accessToken) {
+
+    const access_token = await getAccessTokenByAppAndPlatform({
+      app_id: paymentData.app_id,
+      platform_id: paymentData.platform_id,
+      country_code: paymentData.country_code,
+    });
+
+    if (!access_token) {
       return {
         success: false,
         message: 'Token de acceso no proporcionado'
@@ -41,30 +48,31 @@ class MercadoPagoService {
 
     // Configuración inicial
     const client = new MercadoPagoConfig({
-      accessToken: paymentData.accessToken,
-      options: { timeout: 5000 } // Timeout para evitar esperas infinitas
+      accessToken: access_token.toString(),
     });
-
-    const customer = new Customer(client);
-    const customerCard = new CustomerCard(client);
-    const filter: CustomerSearchData = {
-      options: {
-        email: paymentData.userInfo.email,
-        limit: 1
-      }
-    };
+    // console.log(paymentData);
+    // const customer = new Customer(client);
+    // const customerCard = new CustomerCard(client);
+    // const filter: CustomerSearchData = {
+    //   options: {
+    //     email: paymentData.userInfo.email,
+    //     limit: 1
+    //   }
+    // };
 
     try {
       // Buscar cliente existente
-      const response = await customer.search(filter);
-      let customerInfo = response.results?.[0];
+      // const response = await customer.search(filter);
+      // let customerInfo = response.results?.[0];
+
+      const customerInfo = await this.mercadoPagoFunctions.findMPUserByEmail(paymentData.userInfo.email, client);
+
 
       // Flujo para cliente nuevo
       if (!customerInfo) {
         return await this.handleNewCustomerFlow(
-          customer,
-          customerCard,
-          paymentData
+          paymentData,
+          client
         );
       }
 
@@ -72,7 +80,6 @@ class MercadoPagoService {
       console.log('ℹ Cliente ya existe en plataforma de pago:', customerInfo.id);
       return await this.mercadoPagoFunctions.handleExistingCustomerFlow(
         customerInfo,
-        customerCard,
         paymentData
       );
 
@@ -136,7 +143,7 @@ class MercadoPagoService {
       //crear subscripcion
       //finalizar
 
-      
+
 
 
 
@@ -159,24 +166,22 @@ class MercadoPagoService {
       accessToken: access_token.toString(),
     });
     return this.mercadoPagoFunctions.getCards(data, client);
-
   }
+
+
   async handleNewCustomerFlow(
-    customer: Customer,
-    customerCard: CustomerCard,
-    paymentData: PaymentDTO
+    paymentData: PaymentDTO,
+    client: any
   ): Promise<PaymentResult> {
     try {
+
+
       // 1. Crear cliente en Mercado Pago
-      const newCustomer = await customer.create({
-        body: paymentData.userInfo
-      });
+      const newCustomer = await this.mercadoPagoFunctions.creareMPUser(paymentData, client);
 
       if (!newCustomer?.id) {
         throw new Error('Fallo al crear el usuario en la plataforma de pago');
       }
-
-
 
       // 2. Crear usuario en base de datos local
       const userCreated = await this.mercadoPagoFunctions.createLocalUser(newCustomer, paymentData);
@@ -184,11 +189,11 @@ class MercadoPagoService {
         throw new Error('Fallo al crear el usuario en la plataforma local');
       }
 
-      // 3. Registrar tarjeta
+      // 3. Registrar tarjeta en MP
       const cardResponse = await this.mercadoPagoFunctions.registerCustomerCard(
-        customerCard,
         newCustomer.id,
-        paymentData.cardInfo
+        paymentData.cardInfo,
+        client
       );
 
       paymentData.cardInfo = {

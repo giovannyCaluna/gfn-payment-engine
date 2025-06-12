@@ -1,8 +1,8 @@
 import { payments_payment_method } from '@/modules/payments/DTOs/create-payment-transaction.dto';
 import { PaymentUserAlreadyRegistered } from '@/modules/payments/DTOs/payment-registered-user.dto';
 import { PaymentDTO } from "@/modules/payments/DTOs/payment.dto";
-import { CreateSubscriptionDto, CreateUserInterface } from '@/modules/subscriptions/DTO/create-subscription.dto';
-import { createSubscription, createUser, createUserExternalPlatform, obtainSuscriptionPlan } from '@/modules/subscriptions/subscription.service';
+import { CreateSubscriptionDto } from '@/modules/subscriptions/DTO/create-subscription.dto';
+import { createSubscription, createUserExternalPlatform, obtainSuscriptionPlan } from '@/modules/subscriptions/subscription.service';
 import { CardToken } from "mercadopago/dist/clients/cardToken";
 import { Customer } from "mercadopago/dist/clients/customer";
 import { CustomerSearchData } from "mercadopago/dist/clients/customer/search/types";
@@ -11,11 +11,13 @@ import { CardsRequestDTO } from "./DTOs/cards -request";
 import { CreatePaymentDTO } from './DTOs/mp-create-payment.dto';
 import { TokenGenerationNoCVVDto } from "./DTOs/token-generation-no-cvv.dto";
 import { PaymentResult } from './mercado-pago.dto';
+import { createUser } from '@/modules/users/user.service';
+import { UserInfoDTO } from '@/modules/users/DTOs/user.dto';
 
 
 
 export class MercadoPagoFunctions {
-  
+
   constructor() { }
 
   async generateCardTokenNoCVV(data: TokenGenerationNoCVVDto, client: any): Promise<any> {
@@ -46,25 +48,49 @@ export class MercadoPagoFunctions {
     return customerInfor;
   }
 
+  async findMPUserByEmail(email: string, client: any): Promise<any> {
+    const customer = new Customer(client);
+    const customerCard = new CustomerCard(client);
+    const filter: CustomerSearchData = {
+      options: {
+        email: email,
+        limit: 1
+      }
+    };
+    // Buscar cliente existente
+    const response = await customer.search(filter);
+    let customerInfo = response.results?.[0];
+    return customerInfo;
+  }
+
+  async creareMPUser(paymentData: PaymentDTO, client: any): Promise<any> {
+    const customer = new Customer(client);
+    const newCustomer = await customer.create({
+      body: paymentData.userInfo
+    });
+    return newCustomer;
+  }
+
+
+
+
 
   async createLocalUser(
     mercadoPagoCustomer: any,
     paymentData: PaymentDTO
   ): Promise<any> {
-    const userData: CreateUserInterface = {
+    const userData: UserInfoDTO = {
       email: paymentData.userInfo.email,
       first_name: mercadoPagoCustomer.first_name,
       last_name: mercadoPagoCustomer.last_name,
       phone: mercadoPagoCustomer.phone || paymentData.userInfo.phone,
       country_code: 'CL',
-      is_active: true,
-      created_at: new Date()
     };
 
     const userCreated = await createUser(userData);
 
     // Crear relación de usuario externo
-    if (userCreated?.id) {
+    if (userCreated && 'id' in userCreated) {
       await createUserExternalPlatform({
         user_id: userCreated.id,
         platform_id: 1,
@@ -77,14 +103,14 @@ export class MercadoPagoFunctions {
     return userCreated;
   }
   async registerCustomerCard(
-    customerCard: CustomerCard,
     customerId: string,
-    cardInfo: any
+    cardInfo: any,
+    client: any
   ): Promise<any> {
     if (!cardInfo?.token) {
       throw new Error('Token de tarjeta no válido');
     }
-
+    const customerCard = new CustomerCard(client);
     const cardResponse = await customerCard.create({
       customerId,
       body: cardInfo
@@ -148,7 +174,7 @@ export class MercadoPagoFunctions {
     };
     console.log(firstPayment);
     // const newSuscription = await this.executePayment(firstPayment);
-     const newSuscription =null;
+    const newSuscription = null;
 
     // if (!newSuscription?.id) {
     //   throw new Error('Error al crear la suscripcion');
@@ -159,7 +185,6 @@ export class MercadoPagoFunctions {
 
   async handleExistingCustomerFlow(
     customerInfo: any,
-    customerCard: CustomerCard,
     paymentData: PaymentDTO
   ): Promise<PaymentResult> {
     // Implementar lógica para clientes existentes

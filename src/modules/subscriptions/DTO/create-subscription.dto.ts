@@ -20,16 +20,6 @@ export interface CreateSubscriptionDto {
 }
 
 
-export interface CreateUserInterface {
-  email: string;
-  first_name?: string;
-  last_name?: string;
-  phone?: Phone;
-  country_code?: string;
-  is_active: boolean;
-  created_at: Date;
-  updated_at?: Date;
-}
 
 
 export interface CreateUserExternalPlatformInterface {

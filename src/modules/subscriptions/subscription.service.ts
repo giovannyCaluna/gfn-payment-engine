@@ -1,7 +1,7 @@
 
 import prisma from 'lib/prisma';
 import { Request, Response } from 'express';
-import { CreateSubscriptionDto, CreateUserExternalPlatformInterface, CreateUserInterface, findPlansInterface } from './DTO/create-subscription.dto';
+import { CreateSubscriptionDto, CreateUserExternalPlatformInterface, findPlansInterface } from './DTO/create-subscription.dto';
 
 
 
@@ -35,23 +35,7 @@ export const createSubscription = async (dto: CreateSubscriptionDto) => {
   return subscription;
 }
 
-export const createUser = async (dto: CreateUserInterface) => {
 
-  const newUser = await prisma.users.create({
-    data: {
-      email: dto.email,
-      first_name: dto.first_name,
-      last_name: dto.last_name,
-
-      phone: dto.phone?.number,
-      country_code: dto.country_code,
-      is_active: dto.is_active,
-      created_at: dto.created_at,
-    },
-  });
-
-  return newUser;
-}
 
 export const createUserExternalPlatform = async (dto: CreateUserExternalPlatformInterface) => {
 
