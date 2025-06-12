@@ -1,20 +1,26 @@
-import UserIntegrationService from './user.integration';
-import { UserDTO } from './user.dto';
+import prisma from 'lib/prisma';
+import { UserInfoDTO } from './DTOs/user.dto';
 
 
-type platform = 'mercadopago' | 'wom' | 'stripe';
-class UserService {
 
-  private userIntegrationService: UserIntegrationService;
+export const createUser = async (data: UserInfoDTO) => {
+  try {
+    const newUser = await prisma.users.create({
+      data: {
+        email: data.email,
+        first_name: data.first_name,
+        last_name: data.last_name,
 
-  constructor() {
-    this.userIntegrationService = new UserIntegrationService();
+        phone: data.phone?.number,
+        country_code: data.country_code,
+        is_active: true,
+        created_at: new Date(),
+      },
+    });
+
+    return newUser;
+  } catch (error) {
+    console.error(error);
+    return { message: 'Error al guardar las credenciales' };
   }
-  // Crear un usuario
-  async createUser(userDTO: UserDTO): Promise<any> {
-    const { platform } = userDTO;
-    return await this.userIntegrationService.createUser(userDTO, platform as platform);
-  }
-}
-
-export default UserService;
+};
