@@ -1,6 +1,7 @@
 import { getAccessTokenByAppAndPlatform } from '@/modules/credentials/credentials.service';
 import { PaymentUserAlreadyRegistered } from '@/modules/payments/DTOs/payment-registered-user.dto';
 import { PaymentDTO } from '@/modules/payments/DTOs/payment.dto';
+import { PaymentFunctions } from '@/modules/payments/payment.functions';
 import { Customer, CustomerCard, MercadoPagoConfig, Payment } from 'mercadopago';
 import { CustomerSearchData } from 'mercadopago/dist/clients/customer/search/types';
 import { CardsRequestDTO } from './DTOs/cards -request';
@@ -13,9 +14,11 @@ import { PaymentResult } from './mercado-pago.dto';
 class MercadoPagoService {
 
   private mercadoPagoFunctions: MercadoPagoFunctions;
+  private paymentFunctions: PaymentFunctions;
 
   constructor() {
     this.mercadoPagoFunctions = new MercadoPagoFunctions();
+    this.paymentFunctions = new PaymentFunctions();
 
   }
 
@@ -111,7 +114,6 @@ class MercadoPagoService {
       accessToken: access_token.toString(),
     });
 
-
     const dataCard: TokenGenerationNoCVVDto = {
       card_id: data.cardInfo.card_id,
       customer_id: data.cardInfo.customer_id
@@ -120,12 +122,25 @@ class MercadoPagoService {
     const token = await this.mercadoPagoFunctions.generateCardTokenNoCVV(dataCard, client);
     const payment = new Payment(client);
     const paymentData = this.mercadoPagoFunctions.createPaymentRequestBody(data, token.id);
+
     const paymentResponse = await payment.create({
       body: paymentData,
       requestOptions: { idempotencyKey: `PAY_${Date.now()}` },
     });
+    console.log("Payment response : ");
+    console.log(paymentResponse);
+    if (paymentResponse && paymentResponse.id) {
+      const transaction = this.mercadoPagoFunctions.createTransactionPayment(paymentResponse, data);
+      const savePayment = this.paymentFunctions.savePayment(transaction);
 
-    const transaction = this.mercadoPagoFunctions.createTransactionPayment(paymentResponse, data);
+      //crear subscripcion
+      //finalizar
+
+      
+
+
+
+    }
 
 
 

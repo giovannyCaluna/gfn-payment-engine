@@ -46,16 +46,6 @@ export const executePayment = async (req: Request, res: Response) => {
   }
 };
 
-export const savePaymentTransaction = async (req: Request, res: Response) => {
-  try {
-    const data: CreateTransactionPaymentDTO = req.body;
-    const result = paymentService.savePayment(data);
-    res.json({ result });
-  } catch (error: any) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
 
 
 
