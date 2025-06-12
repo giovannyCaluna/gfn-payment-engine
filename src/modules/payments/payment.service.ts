@@ -22,20 +22,13 @@ class PaymentService {
     return await this.paymentIntegrationService.registerCardAndFirstPayment(paymentData, method as PaymentMethod);
   }
 
-  // Consultar el estado de un pago
-  async getPaymentStatus(paymentStatusData: PaymentStatusDTO): Promise<string> {
-    const { paymentId, method } = paymentStatusData;
-    return await this.paymentIntegrationService.getPaymentStatus(paymentId, method as PaymentMethod);
-  }
+
 
   // Manejar una notificación de pago
   async handlePaymentNotification(notificationData: any, method: string): Promise<any> {
     return await this.paymentIntegrationService.handlePaymentNotification(notificationData, method as PaymentMethod);
   }
 
-  async generateCardToken(cardData: CardTokenRequestDTO, method: string): Promise<any> {
-    return await this.paymentIntegrationService.generateCardToken(cardData, method as PaymentMethod);
-  }
 
 
   async getCards(data: CardsRequestDTO): Promise<any> {

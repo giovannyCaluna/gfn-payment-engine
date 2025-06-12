@@ -20,16 +20,7 @@ router.post('/register', async (req: Request, res: Response) => {
   }
 });
 
-// Ruta para consultar el estado de un pago
-router.get('/status/:paymentId', async (req: Request, res: Response) => {
-  try {
-    const paymentStatusData = req.body;
-    const status = await paymentService.getPaymentStatus(paymentStatusData);
-    res.json({ status });
-  } catch (error: any) {
-    res.status(500).json({ message: error.message });
-  }
-});
+
 
 // Ruta para manejar notificaciones de pagos
 router.post('/notification', async (req: Request, res: Response) => {
@@ -40,21 +31,6 @@ router.post('/notification', async (req: Request, res: Response) => {
     res.status(500).json({ message: error.message });
   }
 });
-
-
-
-// Ruta para generar un token de tarjeta
-router.post('/card-token', async (req: Request, res: Response) => {
-  try {
-    console.log("req.body", req.body);
-    const cardData = req.body;
-    const token = await paymentService.generateCardToken(cardData, "mercadopago");
-    res.json({ token });
-  } catch (error: any) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
 
 
 
