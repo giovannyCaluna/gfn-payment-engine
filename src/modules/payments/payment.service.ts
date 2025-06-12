@@ -22,14 +22,10 @@ class PaymentService {
     return await this.paymentIntegrationService.registerCardAndFirstPayment(paymentData, method as PaymentMethod);
   }
 
-
-
   // Manejar una notificación de pago
   async handlePaymentNotification(notificationData: any, method: string): Promise<any> {
     return await this.paymentIntegrationService.handlePaymentNotification(notificationData, method as PaymentMethod);
   }
-
-
 
   async getCards(data: CardsRequestDTO): Promise<any> {
     return await this.paymentIntegrationService.getCards(data);

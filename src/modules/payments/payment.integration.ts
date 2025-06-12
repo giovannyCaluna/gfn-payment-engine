@@ -4,7 +4,7 @@ import MercadoPagoService from '@/modules/platforms/mercado-pago/mercado-pago.se
 import { CardTokenRequestDTO } from '../platforms/mercado-pago/DTOs/card-token-request.dto';
 import { CardsRequestDTO } from '../platforms/mercado-pago/DTOs/cards -request';
 import { CreatePaymentDTO } from '../platforms/mercado-pago/DTOs/mp-create-payment.dto';
-import { MercadoPagoFunctions } from '../platforms/mercado-pago/mercado-pago-funtions';
+import { MercadoPagoFunctions } from '../platforms/mercado-pago/mercado-pago-functions';
 
 // import WomService from './wo';
 // import StripeService from '../stripe/stripe.service';

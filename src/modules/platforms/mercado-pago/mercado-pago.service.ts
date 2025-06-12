@@ -5,7 +5,7 @@ import { Customer, CustomerCard, MercadoPagoConfig, Payment } from 'mercadopago'
 import { CustomerSearchData } from 'mercadopago/dist/clients/customer/search/types';
 import { CardsRequestDTO } from './DTOs/cards -request';
 import { TokenGenerationNoCVVDto } from './DTOs/token-generation-no-cvv.dto';
-import { MercadoPagoFunctions } from './mercado-pago-funtions';
+import { MercadoPagoFunctions } from './mercado-pago-functions';
 import { PaymentResult } from './mercado-pago.dto';
 
 
