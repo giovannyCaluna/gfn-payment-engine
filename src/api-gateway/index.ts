@@ -4,7 +4,7 @@ import CredentialsRoutes from '@/modules/credentials/credentials.routes';
 import UserRoutes from '@/modules/users/user.routes';
 import  paymentRoutes  from '@/modules/payments/payment.controller';
 import paymentPlatformRoutes from '@/modules/platforms/paymentPlatforms.routes';
-import subscriptionRoutes from '@/modules/subscriptions/subscription.controller';
+import subscriptionRoutes from '@/modules/subscriptions/subscription.routes';
 import cors from 'cors';
 import express, { Request, Response } from 'express';
 

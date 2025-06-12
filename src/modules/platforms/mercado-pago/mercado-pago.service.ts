@@ -4,7 +4,7 @@ import { PaymentDTO } from '@/modules/payments/DTOs/payment.dto';
 import { CardTokenRequestDTO } from "@/modules/platforms/mercado-pago/DTOs/card-token-request.dto";
 import { CreatePaymentDTO } from '@/modules/platforms/mercado-pago/DTOs/mp-create-payment.dto';
 import { CreateSubscriptionDto, CreateUserInterface } from '@/modules/subscriptions/DTO/create-subscription.dto';
-import { createSubscription, createUser, createUserExternalPlatform, obtainSuscriptionPlan } from '@/modules/subscriptions/subscrition.service';
+import { createSubscription, createUser, createUserExternalPlatform, obtainSuscriptionPlan } from '@/modules/subscriptions/subscription.service';
 import axios from 'axios';
 import { randomUUID } from 'crypto';
 import { CardToken, Customer, CustomerCard, MercadoPagoConfig, Payment } from 'mercadopago';
