@@ -49,6 +49,8 @@ router.post('/notification', async (req: Request, res: Response) => {
   }
 });
 
+
+
 // Ruta para generar un token de tarjeta
 router.post('/card-token', async (req: Request, res: Response) => {
   try {

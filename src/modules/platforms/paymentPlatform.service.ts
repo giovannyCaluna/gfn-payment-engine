@@ -1,4 +1,3 @@
-// src/modules/paymentPlatforms/paymentPlatform.service.ts
 import * as PlatformModel from './paymentPlatform.model';
 import prisma from 'lib/prisma';
 import { Request, Response } from 'express';
