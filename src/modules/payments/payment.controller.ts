@@ -9,8 +9,8 @@ const router = express.Router();
 const paymentService = new PaymentService();
 
 
-// Ruta para crear un pago
-router.post('/register', async (req: Request, res: Response) => {
+// Ruta para crear el primer pago
+export const createFirtPayment = async (req: Request, res: Response) => {
   try {
     const paymentData: PaymentDTO = req.body
     const result = await paymentService.registerCardAndFirstPayment(paymentData);
@@ -18,23 +18,14 @@ router.post('/register', async (req: Request, res: Response) => {
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
-});
+};
 
 
 
-// Ruta para manejar notificaciones de pagos
-router.post('/notification', async (req: Request, res: Response) => {
-  try {
-    const result = await paymentService.handlePaymentNotification(req.body, req.body.method);
-    res.json(result);
-  } catch (error: any) {
-    res.status(500).json({ message: error.message });
-  }
-});
 
 
 
-router.post('/get-cards', async (req: Request, res: Response) => {
+export const getCards = async (req: Request, res: Response) => {
   try {
     const data: CardsRequestDTO = req.body;
     const result = await paymentService.getCards(data);
@@ -42,10 +33,9 @@ router.post('/get-cards', async (req: Request, res: Response) => {
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
-}
-);
+};
 
-router.post('/execute-payment', async (req: Request, res: Response) => {
+export const executePayment = async (req: Request, res: Response) => {
   try {
     const paymentData: PaymentUserAlreadyRegistered = req.body;
     const token = await paymentService.executePayment(paymentData);
@@ -54,10 +44,9 @@ router.post('/execute-payment', async (req: Request, res: Response) => {
   catch (error: any) {
     res.status(500).json({ message: error.message });
   }
-}
-);
+};
 
-router.post('/save-payment-transaction', async (req: Request, res: Response) => {
+export const savePaymentTransaction = async (req: Request, res: Response) => {
   try {
     const data: CreateTransactionPaymentDTO = req.body;
     const result = paymentService.savePayment(data);
@@ -65,9 +54,8 @@ router.post('/save-payment-transaction', async (req: Request, res: Response) => 
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
-}
+};
 
-);
 
 
 
