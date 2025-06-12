@@ -1,8 +1,7 @@
 
-import 'dotenv/config';
-
 import appRoutes from '@/modules/apps/app.routes';
 import CredentialsRoutes from '@/modules/credentials/credentials.routes';
+import UserRoutes from '@/modules/users/user.routes';
 import  paymentRoutes  from '@/modules/payments/payment.controller';
 import paymentPlatformRoutes from '@/modules/platforms/paymentPlatforms.routes';
 import subscriptionRoutes from '@/modules/subscriptions/subscription.controller';
@@ -18,7 +17,7 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('api/payment-platforms', paymentPlatformRoutes);
 app.use('/api/credentials', CredentialsRoutes);
-
+app.use('/api/users', UserRoutes);
 
 app.use('/api/apps', appRoutes);
 // Set the network port

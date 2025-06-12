@@ -3,8 +3,7 @@ import { CardTokenRequestDTO } from '../platforms/mercado-pago/DTOs/card-token-r
 import { CardsRequestDTO } from '../platforms/mercado-pago/DTOs/cards -request';
 import { PaymentDTO, PaymentStatusDTO } from './DTOs/payment.dto';
 import PaymentIntegrationService from './payment.integration';
-import { CreatePaymentDTO } from '../platforms/mercado-pago/DTOs/mp-create-payment.dto';
-import { CreateTransactionPaymentDTO, payments_payment_method } from './DTOs/create-payment-transaction.dto';
+import { CreateTransactionPaymentDTO } from './DTOs/create-payment-transaction.dto';
 import prisma from 'lib/prisma';
 import { Prisma } from '@prisma/client';
 
