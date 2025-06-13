@@ -50,24 +50,8 @@ class MercadoPagoService {
     const client = new MercadoPagoConfig({
       accessToken: access_token.toString(),
     });
-    // console.log(paymentData);
-    // const customer = new Customer(client);
-    // const customerCard = new CustomerCard(client);
-    // const filter: CustomerSearchData = {
-    //   options: {
-    //     email: paymentData.userInfo.email,
-    //     limit: 1
-    //   }
-    // };
-
     try {
-      // Buscar cliente existente
-      // const response = await customer.search(filter);
-      // let customerInfo = response.results?.[0];
-
       const customerInfo = await this.mercadoPagoFunctions.findMPUserByEmail(paymentData.userInfo.email, client);
-
-
       // Flujo para cliente nuevo
       if (!customerInfo) {
         return await this.handleNewCustomerFlow(
@@ -76,7 +60,7 @@ class MercadoPagoService {
         );
       }
 
-      // Flujo para cliente existente
+      // Flujo para cliente existente /// Usuario existe pero no tiene tarjetas
       console.log('ℹ Cliente ya existe en plataforma de pago:', customerInfo.id);
       return await this.mercadoPagoFunctions.handleExistingCustomerFlow(
         customerInfo,
@@ -175,9 +159,8 @@ class MercadoPagoService {
   ): Promise<PaymentResult> {
     try {
 
-
       // 1. Crear cliente en Mercado Pago
-      const newCustomer = await this.mercadoPagoFunctions.creareMPUser(paymentData, client);
+      const newCustomer = await this.mercadoPagoFunctions.creareMPUser(paymentData.userInfo, client);
 
       if (!newCustomer?.id) {
         throw new Error('Fallo al crear el usuario en la plataforma de pago');
@@ -202,6 +185,8 @@ class MercadoPagoService {
         payment_method_id: cardResponse.payment_method.id,
         customer_id: newCustomer.id
       }
+
+      
       // 4. Crear suscripción
       const subscriptionResult = await this.mercadoPagoFunctions.createSubscription(
         userCreated.id,

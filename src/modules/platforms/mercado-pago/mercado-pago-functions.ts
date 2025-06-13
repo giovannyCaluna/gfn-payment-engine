@@ -63,10 +63,10 @@ export class MercadoPagoFunctions {
     return customerInfo;
   }
 
-  async creareMPUser(paymentData: PaymentDTO, client: any): Promise<any> {
+  async creareMPUser(userInfo: UserInfoDTO, client: any): Promise<any> {
     const customer = new Customer(client);
     const newCustomer = await customer.create({
-      body: paymentData.userInfo
+      body: userInfo
     });
     return newCustomer;
   }

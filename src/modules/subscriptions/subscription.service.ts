@@ -21,7 +21,7 @@ export const createSubscription = async (dto: CreateSubscriptionDto) => {
     data: {
       user_id: dto.user_id,
       plan_id: dto.plan_id,
-      status: dto.status ?? 'active',
+      status: dto.status ?? 'paused',
       start_date: dto.start_date,
       end_date: dto.start_date,
       next_billing_date: dto.next_billing_date,
