@@ -1,5 +1,4 @@
 import { Decimal } from "@prisma/client/runtime/library";
-import { Phone } from "mercadopago/dist/clients/commonTypes";
 
 export interface CreateSubscriptionDto {
   user_id: number;
@@ -22,14 +21,7 @@ export interface CreateSubscriptionDto {
 
 
 
-export interface CreateUserExternalPlatformInterface {
-  user_id: number,
-  platform_id: number,
-  external_user_id?: string,
-  platform_name: string,
-  created_at: Date;
-  updated_at?: Date;
-}
+
 
 export interface findPlansInterface {
   external_id: number,

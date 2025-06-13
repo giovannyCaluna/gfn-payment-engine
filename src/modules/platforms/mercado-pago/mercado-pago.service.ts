@@ -2,12 +2,12 @@ import { getAccessTokenByAppAndPlatform } from '@/modules/credentials/credential
 import { PaymentUserAlreadyRegistered } from '@/modules/payments/DTOs/payment-registered-user.dto';
 import { PaymentDTO } from '@/modules/payments/DTOs/payment.dto';
 import { PaymentFunctions } from '@/modules/payments/payment.functions';
-import { Customer, CustomerCard, MercadoPagoConfig, Payment } from 'mercadopago';
-import { CustomerSearchData } from 'mercadopago/dist/clients/customer/search/types';
+import { MercadoPagoConfig, Payment } from 'mercadopago';
 import { CardsRequestDTO } from './DTOs/cards -request';
 import { TokenGenerationNoCVVDto } from './DTOs/token-generation-no-cvv.dto';
 import { MercadoPagoFunctions } from './mercado-pago-functions';
 import { PaymentResult } from './mercado-pago.dto';
+import { createLocalUser } from '@/modules/users/user.service'
 
 
 
@@ -54,18 +54,12 @@ class MercadoPagoService {
       const customerInfo = await this.mercadoPagoFunctions.findMPUserByEmail(paymentData.userInfo.email, client);
       // Flujo para cliente nuevo
       if (!customerInfo) {
-        return await this.handleNewCustomerFlow(
-          paymentData,
-          client
-        );
+        return await this.handleNewCustomerFlow(paymentData, client);
       }
 
       // Flujo para cliente existente /// Usuario existe pero no tiene tarjetas
       console.log('ℹ Cliente ya existe en plataforma de pago:', customerInfo.id);
-      return await this.mercadoPagoFunctions.handleExistingCustomerFlow(
-        customerInfo,
-        paymentData
-      );
+      return await this.mercadoPagoFunctions.handleExistingCustomerFlow(customerInfo, paymentData);
 
     } catch (error: any) {
       console.error('Error en el proceso de pago:', {
@@ -153,10 +147,7 @@ class MercadoPagoService {
   }
 
 
-  async handleNewCustomerFlow(
-    paymentData: PaymentDTO,
-    client: any
-  ): Promise<PaymentResult> {
+  async handleNewCustomerFlow(paymentData: PaymentDTO, client: any): Promise<PaymentResult> {
     try {
 
       // 1. Crear cliente en Mercado Pago
@@ -167,8 +158,9 @@ class MercadoPagoService {
       }
 
       // 2. Crear usuario en base de datos local
-      const userCreated = await this.mercadoPagoFunctions.createLocalUser(newCustomer, paymentData);
-      if (!userCreated?.id) {
+      const userCreated = await createLocalUser(newCustomer, paymentData);
+
+      if (!userCreated || !('id' in userCreated) || !userCreated.id) {
         throw new Error('Fallo al crear el usuario en la plataforma local');
       }
 
@@ -178,29 +170,26 @@ class MercadoPagoService {
         paymentData.cardInfo,
         client
       );
-
+      //Actualizamos datos de tarjeta
       paymentData.cardInfo = {
-        token: '',
         card_id: cardResponse.id,
         payment_method_id: cardResponse.payment_method.id,
         customer_id: newCustomer.id
       }
 
-      
       // 4. Crear suscripción
       const subscriptionResult = await this.mercadoPagoFunctions.createSubscription(
         userCreated.id,
         paymentData.productInfo
       );
 
-
       // 4. Crear pago
-      const paymentResult = await this.mercadoPagoFunctions.createFirtPayment(
-        newCustomer.id,
-        cardResponse,
-        subscriptionResult,
-        paymentData
-      );
+      const transaction: PaymentUserAlreadyRegistered = {
+        ...paymentData,
+        customer_id: newCustomer.id,
+      };
+
+      const paymentResult = await this.executePayment(transaction)
 
       return {
         success: true,
@@ -208,7 +197,8 @@ class MercadoPagoService {
         data: {
           customer: newCustomer,
           card: cardResponse,
-          subscription: subscriptionResult
+          subscription: subscriptionResult,
+          payment: paymentResult
         }
       };
 

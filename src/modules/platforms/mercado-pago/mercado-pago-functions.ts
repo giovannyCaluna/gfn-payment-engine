@@ -2,7 +2,7 @@ import { payments_payment_method } from '@/modules/payments/DTOs/create-payment-
 import { PaymentUserAlreadyRegistered } from '@/modules/payments/DTOs/payment-registered-user.dto';
 import { PaymentDTO } from "@/modules/payments/DTOs/payment.dto";
 import { CreateSubscriptionDto } from '@/modules/subscriptions/DTO/create-subscription.dto';
-import { createSubscription, createUserExternalPlatform, obtainSuscriptionPlan } from '@/modules/subscriptions/subscription.service';
+import { createSubscription, obtainSuscriptionPlan } from '@/modules/subscriptions/subscription.service';
 import { CardToken } from "mercadopago/dist/clients/cardToken";
 import { Customer } from "mercadopago/dist/clients/customer";
 import { CustomerSearchData } from "mercadopago/dist/clients/customer/search/types";
@@ -11,7 +11,7 @@ import { CardsRequestDTO } from "./DTOs/cards -request";
 import { CreatePaymentDTO } from './DTOs/mp-create-payment.dto';
 import { TokenGenerationNoCVVDto } from "./DTOs/token-generation-no-cvv.dto";
 import { PaymentResult } from './mercado-pago.dto';
-import { createUser } from '@/modules/users/user.service';
+import { createUser, createUserExternalPlatform } from '@/modules/users/user.service';
 import { UserInfoDTO } from '@/modules/users/DTOs/user.dto';
 
 
@@ -73,35 +73,6 @@ export class MercadoPagoFunctions {
 
 
 
-
-
-  async createLocalUser(
-    mercadoPagoCustomer: any,
-    paymentData: PaymentDTO
-  ): Promise<any> {
-    const userData: UserInfoDTO = {
-      email: paymentData.userInfo.email,
-      first_name: mercadoPagoCustomer.first_name,
-      last_name: mercadoPagoCustomer.last_name,
-      phone: mercadoPagoCustomer.phone || paymentData.userInfo.phone,
-      country_code: 'CL',
-    };
-
-    const userCreated = await createUser(userData);
-
-    // Crear relación de usuario externo
-    if (userCreated && 'id' in userCreated) {
-      await createUserExternalPlatform({
-        user_id: userCreated.id,
-        platform_id: 1,
-        external_user_id: mercadoPagoCustomer.id,
-        platform_name: paymentData.method,
-        created_at: new Date()
-      });
-    }
-
-    return userCreated;
-  }
   async registerCustomerCard(
     customerId: string,
     cardInfo: any,
@@ -124,11 +95,10 @@ export class MercadoPagoFunctions {
     return cardResponse;
   }
 
-  async createSubscription(
-    userId: number,
-    productInfo: any
-  ): Promise<any> {
+  async createSubscription(userId: number, productInfo: any): Promise<any> {
+
     const selectedPlan = await obtainSuscriptionPlan(productInfo);
+
     if (!selectedPlan?.id) {
       throw new Error('Plan de suscripción no válido');
     }
@@ -154,12 +124,7 @@ export class MercadoPagoFunctions {
     return newSuscription;
   }
 
-  async createFirtPayment(
-    cutomerId: string,
-    cardResponse: any,
-    subscriptionResult: any,
-    paymentData: PaymentDTO
-  ): Promise<any> {
+  async createFirtPayment(cutomerId: string, cardResponse: any, subscriptionResult: any, paymentData: PaymentDTO): Promise<any> {
 
     const firstPayment: PaymentUserAlreadyRegistered = {
       app_id: 2,

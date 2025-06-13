@@ -26,7 +26,7 @@ export interface ProductInfoDTO {
 
 
 export interface CardInfo {
-  token: string;
+  token?: string;
   payment_method_id: string;
   customer_id: string;
   card_id: string
