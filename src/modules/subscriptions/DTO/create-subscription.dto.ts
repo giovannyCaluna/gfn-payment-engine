@@ -23,10 +23,3 @@ export interface CreateSubscriptionDto {
 
 
 
-export interface findPlansInterface {
-  external_id: number,
-  name?: string,
-  amount?: string,
-  currency?: string,
-  is_active:boolean
-}

@@ -1,36 +1,9 @@
 
-import { findPlansInterface } from '@/modules/subscriptions/DTO/create-subscription.dto';
+import { productSubscriptionInfo } from '@/modules/subscriptions/DTO/product-subscription-info.dto';
 import { UserInfoDTO } from '@/modules/users/DTOs/user.dto';
+import { CardInfo } from './card-info.dto';
 
 
-export interface AutoRecurringDTO {
-  frequency: number;
-  frequency_type: string;
-  start_date: string;
-  end_date?: string;
-  currency_id: string;
-  transaction_amount: number;
-
-}
-
-export interface ProductInfoDTO {
-
-  type: string;
-  order_id: string;
-  reason: string;
-  external_reference: string;
-  payer_email: string;
-  auto_recurring: AutoRecurringDTO;
-  back_url: string;
-}
-
-
-export interface CardInfo {
-  token?: string;
-  payment_method_id: string;
-  customer_id: string;
-  card_id: string
-}
 
 export interface PaymentDTO {
 
@@ -39,12 +12,7 @@ export interface PaymentDTO {
   platform_id: number;
   method: string;
   userInfo: UserInfoDTO;
+  customer_id?: string;
   cardInfo: CardInfo;
-  productInfo: findPlansInterface;
-}
-
-export interface PaymentStatusDTO {
-  paymentId: string;
-  status: string;
-  method: string;
+  productInfo: productSubscriptionInfo;
 }

@@ -1,7 +1,8 @@
 
 import prisma from 'lib/prisma';
 import { Request, Response } from 'express';
-import { CreateSubscriptionDto, findPlansInterface } from './DTO/create-subscription.dto';
+import { CreateSubscriptionDto } from './DTO/create-subscription.dto';
+import { productSubscriptionInfo } from './DTO/product-subscription-info.dto';
 
 
 
@@ -38,7 +39,7 @@ export const createSubscription = async (dto: CreateSubscriptionDto) => {
 
 
 
-export const obtainSuscriptionPlan = async (dto: findPlansInterface) => {
+export const obtainSuscriptionPlan = async (dto: productSubscriptionInfo) => {
 
   const selectedPlan = await prisma.plans.findUnique({
     where: {
