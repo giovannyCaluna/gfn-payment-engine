@@ -57,25 +57,25 @@ model registered_apps {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model payments {
-  id                                                    Int             @id @default(autoincrement()) @db.UnsignedInt
-  subscription_id                                       Int             @db.UnsignedInt
-  user_id                                               Int             @db.UnsignedInt
-  platform_id                                           Int             @db.UnsignedInt
-  external_payment_id                                   String?         @db.VarChar(255)
-  amount                                                Decimal         @db.Decimal(10, 2)
-  currency                                              String          @db.VarChar(3)
-  status                                                payments_status @default(pending)
-  payment_method                                        String          @db.VarChar(255)
-  description                                           String?         @db.VarChar(255)
-  invoice_url                                           String?         @db.VarChar(512)
-  attempted_at                                          DateTime        @db.DateTime(0)
-  confirmed_at                                          DateTime?       @db.DateTime(0)
-  refunded_at                                           DateTime?       @db.DateTime(0)
-  failure_reason                                        String?         @db.VarChar(255)
-  response_data                                         String?         @db.LongText
-  created_at                                            DateTime?       @default(now()) @db.Timestamp(0)
-  subscriptions_payments_subscription_idTosubscriptions subscriptions   @relation("payments_subscription_idTosubscriptions", fields: [subscription_id], references: [id], onUpdate: Restrict, map: "payments_ibfk_1")
-  users                                                 users           @relation(fields: [user_id], references: [id], onUpdate: Restrict, map: "payments_ibfk_2")
+  id                                                    Int           @id @default(autoincrement()) @db.UnsignedInt
+  subscription_id                                       Int           @db.UnsignedInt
+  user_id                                               Int           @db.UnsignedInt
+  platform_id                                           Int           @db.UnsignedInt
+  external_payment_id                                   String?       @db.VarChar(255)
+  amount                                                Decimal       @db.Decimal(10, 2)
+  currency                                              String        @db.VarChar(3)
+  status                                                String        @default("pending") @db.VarChar(255)
+  payment_method                                        String        @db.VarChar(255)
+  description                                           String?       @db.VarChar(255)
+  invoice_url                                           String?       @db.VarChar(512)
+  attempted_at                                          DateTime      @db.DateTime(0)
+  confirmed_at                                          DateTime?     @db.DateTime(0)
+  refunded_at                                           DateTime?     @db.DateTime(0)
+  failure_reason                                        String?       @db.VarChar(255)
+  response_data                                         String?       @db.LongText
+  created_at                                            DateTime?     @default(now()) @db.Timestamp(0)
+  subscriptions_payments_subscription_idTosubscriptions subscriptions @relation("payments_subscription_idTosubscriptions", fields: [subscription_id], references: [id], onUpdate: Restrict, map: "payments_ibfk_1")
+  users                                                 users         @relation(fields: [user_id], references: [id], onUpdate: Restrict, map: "payments_ibfk_2")
 
   @@index([external_payment_id], map: "idx_external_id")
   @@index([user_id], map: "idx_user_payments")
@@ -170,12 +170,4 @@ enum plans_interval {
 enum subscriptions_interval {
   monthly
   biannualy
-}
-
-enum payments_status {
-  pending
-  paid
-  failed
-  refunded
-  partially_refunded
 }
