@@ -10,4 +10,5 @@ export interface UserInfoDTO {
   is_active?: boolean;
   created_at?: Date;
   updated_at?: Date;
+  user_id?:number;
 }

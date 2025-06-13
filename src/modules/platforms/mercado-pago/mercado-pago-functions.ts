@@ -13,6 +13,7 @@ import { TokenGenerationNoCVVDto } from "./DTOs/token-generation-no-cvv.dto";
 import { PaymentResult } from './mercado-pago.dto';
 import { createUser, createUserExternalPlatform } from '@/modules/users/user.service';
 import { UserInfoDTO } from '@/modules/users/DTOs/user.dto';
+import { productSubscriptionInfo } from '@/modules/subscriptions/DTO/product-subscription-info.dto';
 
 
 
@@ -95,7 +96,7 @@ export class MercadoPagoFunctions {
     return cardResponse;
   }
 
-  async createSubscription(userId: number, productInfo: any): Promise<any> {
+  async createSubscription(userId: number, productInfo: productSubscriptionInfo): Promise<any> {
 
     const selectedPlan = await obtainSuscriptionPlan(productInfo);
 
@@ -104,7 +105,10 @@ export class MercadoPagoFunctions {
     }
 
     const currentDate = new Date();
-    const nextBillingDate = this.addOneMonth(currentDate);
+    const nextBillingDate = new Date(currentDate);
+    nextBillingDate.setMonth(currentDate.getMonth() + 1);
+
+
     const subscriptionData: CreateSubscriptionDto = {
       user_id: userId,
       plan_id: selectedPlan.id,
@@ -182,16 +186,16 @@ export class MercadoPagoFunctions {
     };
   }
 
-  createTransactionPayment(paymentResponse: any, data: PaymentUserAlreadyRegistered) {
+  createTransactionPayment(paymentResponse: any, data: PaymentUserAlreadyRegistered, idSubscription:number, userId:number) {
     return {
-      subscription_id: paymentResponse.id ?? 0,
-      user_id: 1, // This should be replaced with the actual user ID
+      subscription_id: idSubscription ?? 0,
+      user_id: userId, // This should be replaced with the actual user ID
       platform_id: data.platform_id,
       external_payment_id: paymentResponse.external_reference,
       amount: paymentResponse.transaction_amount as unknown as string, // Ensure amount is a string
       currency: paymentResponse.currency_id as unknown as string, // Ensure currency is a string
       status: paymentResponse.status as 'pending' | 'paid' | 'failed' | 'refunded' || 'pending', // Default to 'pending'
-      payment_method: data.method as payments_payment_method,
+      payment_method: "credit_card" as payments_payment_method,
       description: paymentResponse.description || 'Pago realizado',
       attempted_at: new Date().toISOString(),
       confirmed_at: paymentResponse.date_approved ? new Date(paymentResponse.date_approved).toISOString() : null,

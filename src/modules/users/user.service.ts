@@ -74,3 +74,4 @@ export const createUserExternalPlatform = async (dto: CreateUserExternalPlatform
     return { message: 'Error al guardar usuario de plataforma referencial ' };
   }
 }
+

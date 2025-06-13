@@ -40,6 +40,7 @@ export const createSubscription = async (dto: CreateSubscriptionDto) => {
 
 
 export const obtainSuscriptionPlan = async (dto: productSubscriptionInfo) => {
+  console.log(dto);
 
   const selectedPlan = await prisma.plans.findUnique({
     where: {

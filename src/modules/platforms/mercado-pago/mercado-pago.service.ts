@@ -8,7 +8,9 @@ import { TokenGenerationNoCVVDto } from './DTOs/token-generation-no-cvv.dto';
 import { MercadoPagoFunctions } from './mercado-pago-functions';
 import { PaymentResult } from './mercado-pago.dto';
 import { createLocalUser } from '@/modules/users/user.service'
-
+import { createSubscription, obtainSuscriptionPlan } from '@/modules/subscriptions/subscription.service';
+import { CreateSubscriptionDto } from '@/modules/subscriptions/DTO/create-subscription.dto';
+import { Decimal } from '@prisma/client/runtime/library';
 
 
 class MercadoPagoService {
@@ -112,14 +114,31 @@ class MercadoPagoService {
       body: paymentData,
       requestOptions: { idempotencyKey: `PAY_${Date.now()}` },
     });
-    console.log("Payment response : ");
-    console.log(paymentResponse);
-    if (paymentResponse && paymentResponse.id) {
-      const transaction = this.mercadoPagoFunctions.createTransactionPayment(paymentResponse, data);
-      const savePayment = this.paymentFunctions.savePayment(transaction);
 
-      //crear subscripcion
-      //finalizar
+    const selectedPlan = await obtainSuscriptionPlan(data.productInfo);
+    const currentDate = new Date();
+    const nextBillingDate = new Date(currentDate);
+    nextBillingDate.setMonth(currentDate.getMonth() + 1);
+
+
+
+    const subscriptionData: CreateSubscriptionDto = {
+      user_id: data.userInfo.user_id ?? 0,
+      plan_id: selectedPlan?.id ?? 0,
+      start_date: currentDate.toISOString(),
+      end_date: nextBillingDate.toISOString(),
+      next_billing_date: nextBillingDate.toISOString(),
+      amount: selectedPlan?.amount ?? new Decimal(0.0),
+      interval: selectedPlan?.interval ?? "monthly",
+      created_at: currentDate
+    };
+      const subscription = await createSubscription(subscriptionData);
+      
+    if (paymentResponse && paymentResponse.id) {
+       const transaction = this.mercadoPagoFunctions.createTransactionPayment(paymentResponse, data,subscription.id, data.userInfo.user_id ?? 0);
+       const savePayment = this.paymentFunctions.savePayment(transaction);
+
+
 
 
 
@@ -129,7 +148,7 @@ class MercadoPagoService {
 
 
 
-    return paymentResponse;
+    return {"message":"subscription created"};
 
 
   }
