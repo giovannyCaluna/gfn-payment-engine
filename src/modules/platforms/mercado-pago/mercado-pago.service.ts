@@ -8,7 +8,7 @@ import { TokenGenerationNoCVVDto } from './DTOs/token-generation-no-cvv.dto';
 import { MercadoPagoFunctions } from './mercado-pago-functions';
 import { PaymentResult } from './mercado-pago.dto';
 import { createLocalUser } from '@/modules/users/user.service'
-import { createSubscription, obtainSuscriptionPlan } from '@/modules/subscriptions/subscription.service';
+import { createSubscription, obtainSuscriptionPlan, activateSubscription } from '@/modules/subscriptions/subscription.service';
 import { CreateSubscriptionDto } from '@/modules/subscriptions/DTO/create-subscription.dto';
 import { Decimal } from '@prisma/client/runtime/library';
 
@@ -132,23 +132,20 @@ class MercadoPagoService {
       interval: selectedPlan?.interval ?? "monthly",
       created_at: currentDate
     };
-      const subscription = await createSubscription(subscriptionData);
-      
+    const subscription = await createSubscription(subscriptionData);
+
     if (paymentResponse && paymentResponse.id) {
-       const transaction = this.mercadoPagoFunctions.createTransactionPayment(paymentResponse, data,subscription.id, data.userInfo.user_id ?? 0);
-       const savePayment = this.paymentFunctions.savePayment(transaction);
+      const transaction = this.mercadoPagoFunctions.createTransactionPayment(paymentResponse, data, subscription.id, data.userInfo.user_id ?? 0);
+      const savePayment = this.paymentFunctions.savePayment(transaction);
 
 
-
-
-
-
-
+      const subscriptionActivated = await activateSubscription(subscription.id);
+      return subscriptionActivated;
     }
 
 
 
-    return {"message":"subscription created"};
+    return { "message": "something went wrong" };
 
 
   }

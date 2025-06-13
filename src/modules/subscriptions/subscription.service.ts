@@ -50,3 +50,16 @@ export const obtainSuscriptionPlan = async (dto: productSubscriptionInfo) => {
 
   return selectedPlan;
 }
+
+export const activateSubscription = async (subscriptionId: number) => {
+  const updatedSubscription = await prisma.subscriptions.update({
+    where: {
+      id: subscriptionId,
+    },
+    data: {
+      status: 'active',
+    },
+  });
+
+  return updatedSubscription;
+};
